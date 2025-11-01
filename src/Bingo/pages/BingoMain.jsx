@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faList, faRandom } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faList, faRandom, faCog } from '@fortawesome/free-solid-svg-icons';
 import BingoCard from '../components/BingoCard';
 import BingoControls from '../components/BingoControls';
 import NumberDisplay from '../components/NumberDisplay';
@@ -66,6 +66,13 @@ const BingoMainContent = () => {
               >
                 <FontAwesomeIcon icon={faList} className="mr-2" />
                 Ver Cartones
+              </Link>
+              <Link 
+                to="/bingo/admin" 
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all duration-300 inline-flex items-center font-medium shadow-md"
+              >
+                <FontAwesomeIcon icon={faCog} className="mr-2" />
+                Administrador
               </Link>
             </div>
             <Link 

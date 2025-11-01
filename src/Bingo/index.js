@@ -1,5 +1,6 @@
 // Páginas de Bingo
 export { default as BingoMain } from './pages/BingoMain';
+export { default as BingoAdmin } from './pages/BingoAdmin';
 export { default as BingoCardViewer } from './pages/BingoCardViewer';
 export { default as BingoCardsList } from './pages/BingoCardsList';
 
