@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio | Desarrollador Fullstack</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración para usar la fuente Inter -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Estilo personalizado para el acento de la página */
+        .accent-color {
+            color: #6366f1; /* Indigo-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- Navegación Fija -->
+    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logotipo/Nombre -->
+                <a href="#" class="text-2xl font-bold accent-color">
+                    &lt;MiNombre /&gt;
+                </a>
+                <!-- Enlaces de Navegación -->
+                <div class="flex space-x-4">
+                    <a href="#acerca" class="text-gray-600 hover:accent-color transition duration-300">Acerca</a>
+                    <a href="#habilidades" class="text-gray-600 hover:accent-color transition duration-300">Habilidades</a>
+                    <a href="#proyectos" class="text-gray-600 hover:accent-color transition duration-300">Proyectos</a>
+                    <a href="#contacto" class="text-gray-600 hover:accent-color transition duration-300">Contacto</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sección Hero/Introducción -->
+    <header class="pt-24 pb-32 bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between">
+            <!-- Contenido de Texto -->
+            <div class="md:w-3/5 text-center md:text-left">
+                <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-4">
+                    ¡Hola! Soy <span class="accent-color">Juan Pérez</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-8">
+                    Desarrollador <span class="font-bold">Fullstack</span> con pasión por construir experiencias digitales escalables y elegantes.
+                </p>
+                <div class="space-x-4">
+                    <a href="#proyectos" class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-8 rounded-full transition duration-300 shadow-lg shadow-indigo-500/50">
+                        Ver Proyectos
+                    </a>
+                    <a href="#contacto" class="inline-block border border-indigo-500 text-indigo-500 hover:bg-indigo-500 hover:text-white font-semibold py-3 px-8 rounded-full transition duration-300">
+                        Hablemos
+                    </a>
+                </div>
+            </div>
+            <!-- Imagen (Placeholder) -->
+            <div class="mt-10 md:mt-0 md:w-1/5 flex justify-center">
+                 <!-- Icono SVG de desarrollador (simulando un avatar) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-48 h-48 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="7" r="4" />
+                    <path d="M12 21v-2c0-2.2 1.8-4 4-4h0c2.2 0 4 1.8 4 4v2" />
+                    <path d="M4 21v-2c0-2.2 1.8-4 4-4h0c2.2 0 4 1.8 4 4v2" />
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sección Acerca de Mí -->
+    <section id="acerca" class="py-20 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-12">Acerca de Mí</h2>
+            <div class="text-lg leading-relaxed text-gray-600 space-y-4">
+                <p>
+                    Soy un desarrollador Fullstack con 5 años de experiencia, especializado en el ecosistema JavaScript. Mi enfoque principal es crear aplicaciones robustas, de alto rendimiento y fáciles de mantener. Disfruto navegando entre el Frontend, donde priorizo la experiencia de usuario y la estética, y el Backend, donde aseguro la lógica de negocio y la eficiencia de las bases de datos.
+                </p>
+                <p>
+                    En el Frontend, me desempeño con <span class="font-semibold accent-color">React y Next.js</span>, utilizando herramientas modernas como Tailwind CSS para el diseño rápido y responsivo. En el Backend, mi herramienta preferida es <span class="font-semibold accent-color">Node.js (Express o NestJS)</span>, complementado con bases de datos SQL (PostgreSQL) y NoSQL (MongoDB).
+                </p>
+                <p>
+                    Siempre estoy buscando aprender y aplicar las últimas tendencias tecnológicas para entregar soluciones que realmente resuelvan problemas. ¡Echa un vistazo a mis proyectos a continuación!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Habilidades (Skills) -->
+    <section id="habilidades" class="py-20 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-12">Mi Stack Tecnológico</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+
+                <!-- Columna Frontend -->
+                <div class="bg-white p-8 rounded-xl shadow-2xl transition duration-500 hover:shadow-indigo-300/50">
+                    <h3 class="text-2xl font-semibold mb-4 flex items-center accent-color">
+                        <!-- Icono de Frontend (Pantalla) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="15" rx="2" ry="2"/><path d="M8 21h8"/><path d="M12 21v-3"/></svg>
+                        Frontend
+                    </h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> React / Next.js</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> JavaScript (ES6+), TypeScript</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> HTML5, CSS3, Tailwind CSS</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Redux / Zustand</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Pruebas (Jest, Cypress)</li>
+                    </ul>
+                </div>
+
+                <!-- Columna Backend -->
+                <div class="bg-white p-8 rounded-xl shadow-2xl transition duration-500 hover:shadow-indigo-300/50">
+                    <h3 class="text-2xl font-semibold mb-4 flex items-center accent-color">
+                         <!-- Icono de Backend (Servidor) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01"/><path d="M6 18h.01"/></svg>
+                        Backend
+                    </h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Node.js (Express, NestJS)</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Python (Django/Flask)</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> API RESTful / GraphQL</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Autenticación (JWT, OAuth)</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Microservicios</li>
+                    </ul>
+                </div>
+
+                <!-- Columna DevOps/DB -->
+                <div class="bg-white p-8 rounded-xl shadow-2xl transition duration-500 hover:shadow-indigo-300/50">
+                    <h3 class="text-2xl font-semibold mb-4 flex items-center accent-color">
+                         <!-- Icono de Infraestructura (Nube) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 0 1 15.7 8h1.8a5 5 0 0 1 0 10H5.5"/><path d="M12 21v-7"/></svg>
+                        DB & DevOps
+                    </h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> PostgreSQL, MongoDB, MySQL</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Docker / Kubernetes (Básico)</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> AWS / Google Cloud (GCP)</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> Git, GitHub Actions</li>
+                        <li class="flex items-center"><span class="accent-color mr-2">•</span> CI/CD</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Proyectos -->
+    <section id="proyectos" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-12">Proyectos Destacados</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                <!-- Tarjeta de Proyecto 1 -->
+                <div class="bg-gray-100 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold mb-3 accent-color">Plataforma de E-Learning</h3>
+                    <p class="text-gray-600 mb-4">
+                        Sistema completo para la gestión de cursos online, usuarios y progreso. Incluye pasarela de pago y foros de discusión en tiempo real.
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-sm font-medium mb-4">
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Next.js</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Node.js (NestJS)</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">PostgreSQL</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Tailwind CSS</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">Ver Demo &rarr;</a>
+                        <a href="#" class="text-gray-600 hover:text-gray-800">GitHub &rarr;</a>
+                    </div>
+                </div>
+
+                 <!-- Tarjeta de Proyecto 2 -->
+                <div class="bg-gray-100 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold mb-3 accent-color">App de Gestión de Tareas (PWA)</h3>
+                    <p class="text-gray-600 mb-4">
+                        Aplicación web progresiva (PWA) para la organización de tareas personales y de equipo. Soporta modo offline y sincronización en tiempo real.
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-sm font-medium mb-4">
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">React</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Firebase/Firestore</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">TypeScript</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Zustand</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">Ver Demo &rarr;</a>
+                        <a href="#" class="text-gray-600 hover:text-gray-800">GitHub &rarr;</a>
+                    </div>
+                </div>
+
+                 <!-- Tarjeta de Proyecto 3 -->
+                <div class="bg-gray-100 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.02]">
+                    <h3 class="text-2xl font-semibold mb-3 accent-color">Sistema de Inventario para Retail</h3>
+                    <p class="text-gray-600 mb-4">
+                        Backend escalable para el seguimiento de inventario, órdenes de compra y gestión de proveedores. Optimizado para alto tráfico de datos.
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-sm font-medium mb-4">
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Python (Django)</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">MongoDB</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Docker</span>
+                        <span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full">Swagger API</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">Ver Docs &rarr;</a>
+                        <a href="#" class="text-gray-600 hover:text-gray-800">GitHub &rarr;</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Contacto -->
+    <section id="contacto" class="py-20 bg-gray-900 text-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-12">¿Listo para colaborar?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- Formulario de Contacto (Mockup) -->
+                <div class="bg-gray-800 p-8 rounded-xl shadow-2xl">
+                    <h3 class="text-2xl font-semibold mb-6 accent-color">Envíame un mensaje</h3>
+                    <form onsubmit="event.preventDefault(); showMessage('Mensaje enviado. Me pondré en contacto pronto.', 'success');">
+                        <div class="mb-4">
+                            <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Nombre</label>
+                            <input type="text" id="name" required class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                            <input type="email" id="email" required class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div class="mb-6">
+                            <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Mensaje</label>
+                            <textarea id="message" rows="4" required class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-lg shadow-indigo-500/50">
+                            Enviar Mensaje
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Información de Contacto y Redes -->
+                <div class="text-center md:text-left pt-8 md:pt-0">
+                    <h3 class="text-2xl font-semibold mb-6 accent-color">O encuéntrame en:</h3>
+                    <p class="text-lg text-gray-300 mb-6">
+                        Siempre estoy abierto a discutir nuevos proyectos, ideas creativas o nuevas oportunidades.
+                    </p>
+                    <div class="space-y-4 mb-8">
+                        <p class="flex items-center justify-center md:justify-start text-gray-300">
+                            <!-- Icono de Email -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-3 accent-color" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            mi.email@ejemplo.com
+                        </p>
+                        <p class="flex items-center justify-center md:justify-start text-gray-300">
+                            <!-- Icono de Teléfono -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-3 accent-color" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6.7-6.7A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4.18 2h3c.81 0 .94.48 1.45 1.25L9 5.5c.34.72 1.3 1.09 2.05.93l1.83-.37c1.76-.36 3.49.33 4.17 1.92l.82 1.83c.77.77 1.14 1.73.93 2.51l-.37 1.83c-.16.75.21 1.71.93 2.05l1.25.61c.77.51 1.25.64 1.25 1.45z"/></svg>
+                            +57 300 123 4567
+                        </p>
+                    </div>
+
+                    <div class="flex space-x-6 justify-center md:justify-start">
+                        <!-- Icono de LinkedIn -->
+                        <a href="#" target="_blank" class="text-gray-300 hover:accent-color transition duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 0-6 6v7H6v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                        </a>
+                        <!-- Icono de GitHub -->
+                        <a href="#" target="_blank" class="text-gray-300 hover:accent-color transition duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87c0-1.72-.7-3.23-1.7-4.33C17.2 9 17.5 7.5 17.5 6c0-1.72-.9-3.41-2.5-4.5.34-1.07.72-2.13 1.13-3.21.36-.93 1-1.63 1.63-2.14a4.13 4.13 0 0 0 1.23-.96c.64-.67.92-1.52.8-2.3a.5.5 0 0 0-.55-.4c-1.35-.14-2.7.27-3.8 1.18-.75.61-1.3 1.35-1.7 2.22-1.22.44-2.58.64-3.92.57-1.34-.07-2.7-.28-3.92-.57-.4-.87-.95-1.61-1.7-2.22C6.2 1.27 4.85.86 3.5.72a.5.5 0 0 0-.55.4c-.12.78.16 1.63.8 2.3a4.13 4.13 0 0 0 1.23.96c.63.51 1.27 1.21 1.63 2.14.41 1.08.79 2.14 1.13 3.21-1 1.1-1.7 2.61-1.7 4.33V22M9 18c-3.14 1.53-3.14 2.5-3.14 2.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5s0-.97-3.14-2.5c-.75-.4-1.5-.6-2.25-.6s-1.5.2-2.25.6z"/></svg>
+                        </a>
+                        <!-- Icono de Twitter/X -->
+                        <a href="#" target="_blank" class="text-gray-300 hover:accent-color transition duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2 1-1.1 1.8-2.5 2.2-4 1.3.1 2.5-.2 3.6-.9 2-.9 3.5-2.6 4-4.7 1-.3 2-.5 3-.4-1.1.5-2.2.8-3.3.9 1-.6 1.8-1.5 2.1-2.7-.9.5-2 .8-3.1.9C15.8 5 14.7 4.7 13.9 4c-1.2-.8-2.7-1.3-4.3-1.3-3.2 0-5.8 2.6-5.8 5.8 0 .5.1 1 .2 1.5C3 11 1.8 9.7.7 8.5-.2 10 0 11.5.5 13c.6 1.5 1.7 2.7 3 3.5C2.8 16.5 2 16.2 1.3 15.7v.1c0 2.8 2 5.2 4.6 5.8-1.5.4-3.1.5-4.6.1.4 1.5 1.5 2.8 3 3.5 2.2 1 4.7 1.4 7 .9 3.7-1 6.5-4.1 7.2-7.9.6-3.8-.7-7.6-3.4-10.4C21.7 6.1 22 4 22 4z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Contenedor del Mensaje (para reemplazar alert()) -->
+            <div id="message-box" class="fixed top-5 right-5 p-4 rounded-lg text-white transform transition-transform duration-500 opacity-0 translate-y-full" style="pointer-events: none;">
+                <!-- El mensaje se inyectará aquí -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Pie de Página -->
+    <footer class="bg-gray-800 text-gray-400 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>&copy; 2025 Mi Nombre | Desarrollador Fullstack. Diseñado con Tailwind CSS.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Función para mostrar un mensaje en lugar de usar alert()
+        function showMessage(text, type) {
+            const box = document.getElementById('message-box');
+            box.textContent = text;
+            box.style.pointerEvents = 'auto';
+
+            // Determinar color basado en el tipo
+            if (type === 'success') {
+                box.className = 'fixed top-5 right-5 p-4 rounded-lg bg-green-500 text-white transform transition-transform duration-500 translate-y-0 opacity-100';
+            } else if (type === 'error') {
+                box.className = 'fixed top-5 right-5 p-4 rounded-lg bg-red-500 text-white transform transition-transform duration-500 translate-y-0 opacity-100';
+            } else {
+                 box.className = 'fixed top-5 right-5 p-4 rounded-lg bg-indigo-500 text-white transform transition-transform duration-500 translate-y-0 opacity-100';
+            }
+
+            // Ocultar el mensaje después de 3 segundos
+            setTimeout(() => {
+                box.className = 'fixed top-5 right-5 p-4 rounded-lg text-white transform transition-transform duration-500 translate-y-full opacity-0';
+                box.style.pointerEvents = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDesktop, faServer, faCloud } from '@fortawesome/free-solid-svg-icons';
+
+const Skills = () => {
+  const skillsData = [
+    {
+      title: 'Frontend',
+      icon: 'screen',
+      skills: [
+        'React / Next.js',
+        'JavaScript (ES6+), TypeScript',
+        'HTML5, CSS3, Tailwind CSS',
+        'Redux / Zustand',
+        'Pruebas (Jest, Cypress)',
+      ],
+    },
+    {
+      title: 'Backend',
+      icon: 'server',
+      skills: [
+        'Node.js (Express, NestJS)',
+        'Python (Django/Flask)',
+        'API RESTful / GraphQL',
+        'Autenticación (JWT, OAuth)',
+        'Microservicios',
+      ],
+    },
+    {
+      title: 'DB & DevOps',
+      icon: 'cloud',
+      skills: [
+        'PostgreSQL, MongoDB, MySQL',
+        'Docker / Kubernetes (Básico)',
+        'AWS / Google Cloud (GCP)',
+        'Git, GitHub Actions',
+        'CI/CD',
+      ],
+    },
+  ];
+
+  const renderIcon = (iconName) => {
+    switch (iconName) {
+      case 'screen':
+        return <FontAwesomeIcon icon={faDesktop} className="w-6 h-6" />;
+      case 'server':
+        return <FontAwesomeIcon icon={faServer} className="w-6 h-6" />;
+      case 'cloud':
+        return <FontAwesomeIcon icon={faCloud} className="w-6 h-6" />;
+      default:
+        return <FontAwesomeIcon icon={faDesktop} className="w-6 h-6" />;
+    }
+  };
+
+  return (
+    <section id="habilidades" className="py-20 bg-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-4xl font-bold text-center mb-12">Mi Stack Tecnológico</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {skillsData.map((skillGroup) => (
+            <div
+              key={skillGroup.title}
+              className="bg-white p-8 rounded-xl shadow-2xl transition duration-500 hover:shadow-indigo-300/50"
+            >
+              <h3 className="text-2xl font-semibold mb-4 flex items-center text-indigo-500">
+                {renderIcon(skillGroup.icon)}
+                <span className="ml-3">{skillGroup.title}</span>
+              </h3>
+              <ul className="space-y-2 text-gray-600">
+                {skillGroup.skills.map((skill, index) => (
+                  <li key={index} className="flex items-center">
+                    <span className="text-indigo-500 mr-2">•</span>
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Skills;

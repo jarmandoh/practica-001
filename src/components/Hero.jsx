@@ -1,0 +1,37 @@
+import React from 'react';
+
+const Hero = () => {
+  return (
+    <header className="pt-24 pb-32 bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between">
+        {/* Contenido de Texto */}
+        <div className="md:w-3/5 text-center md:text-left">
+          <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-4">
+            ¡Hola! Soy <span className="text-indigo-500">Janier Hernandez</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-300 mb-8">
+            Desarrollador <span className="font-bold">Fullstack</span> con pasión por construir experiencias digitales escalables y elegantes.
+          </p>
+          <div className="space-x-4">
+            <a
+              href="#proyectos"
+              className="inline-block bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-8 rounded-full transition duration-300 shadow-lg shadow-indigo-500/50"
+            >
+              Ver Proyectos
+            </a>
+            <a
+              href="#contacto"
+              className="inline-block border border-indigo-500 text-indigo-500 hover:bg-indigo-500 hover:text-white font-semibold py-3 px-8 rounded-full transition duration-300"
+            >
+              Hablemos
+            </a>
+          </div>
+        </div>
+        
+        
+      </div>
+    </header>
+  );
+};
+
+export default Hero;

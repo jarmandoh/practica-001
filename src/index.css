@@ -1,0 +1,57 @@
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html {
+  color-scheme: light;
+}
+
+@media (max-width: 768px) {
+  .col-hid {
+    display: none;
+  }
+}
+
+/* Animaciones para el menú mobile */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 300px;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 300px;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+}
+
+.slide-down {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
