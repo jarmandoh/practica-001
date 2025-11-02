@@ -163,7 +163,7 @@ const BingoCardViewer = () => {
       </div>
 
       {/* Estilos para impresión */}
-      <style jsx>{`
+      <style jsx="true">{`
         @media print {
           body { margin: 0; }
           .print\\:hidden { display: none !important; }

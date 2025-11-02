@@ -11,13 +11,16 @@ import {
   faCheck,
   faTimes,
   faEye,
-  faChartBar
+  faChartBar,
+  faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { useBingoAdmin } from '../hooks/useBingoAdmin';
+import { useAdminAuth } from '../hooks/useAdminAuth';
 import AssignmentForm from '../components/AssignmentForm';
 import AssignmentStats from '../components/AssignmentStats';
 
 const BingoAdmin = () => {
+  const { logout, getTimeUntilExpiry } = useAdminAuth();
   const {
     currentRaffle,
     setCurrentRaffle,
@@ -76,6 +79,13 @@ const BingoAdmin = () => {
   };
 
   const stats = getStats();
+  const timeLeft = getTimeUntilExpiry();
+
+  const handleLogout = () => {
+    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      logout();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-600 to-blue-600 p-4">
@@ -86,6 +96,11 @@ const BingoAdmin = () => {
             <div>
               <h1 className="text-4xl font-bold text-white mb-2">Administrador de Bingo</h1>
               <p className="text-purple-100">Gestiona las asignaciones de cartones y participantes</p>
+              {timeLeft.valid && (
+                <p className="text-purple-200 text-sm mt-1">
+                  🕒 Sesión expira en: {timeLeft.hours}h {timeLeft.minutes}m
+                </p>
+              )}
             </div>
             <div className="flex gap-3">
               <Link 
@@ -101,6 +116,14 @@ const BingoAdmin = () => {
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-2" />
                 Nueva Asignación
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                title="Cerrar sesión"
+              >
+                <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+                Salir
               </button>
             </div>
           </div>
