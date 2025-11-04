@@ -12,12 +12,19 @@ import {
   faTimes,
   faEye,
   faChartBar,
-  faSignOutAlt
+  faSignOutAlt,
+  faGamepad,
+  faPlay,
+  faStop,
+  faCog
 } from '@fortawesome/free-solid-svg-icons';
 import { useBingoAdmin } from '../hooks/useBingoAdmin';
 import { useAdminAuth } from '../hooks/useAdminAuth';
+import { useGameManager } from '../hooks/useGameManager';
 import AssignmentForm from '../components/AssignmentForm';
 import AssignmentStats from '../components/AssignmentStats';
+import BingoControls from '../components/BingoControls';
+import NumberDisplay from '../components/NumberDisplay';
 
 const BingoAdmin = () => {
   const { logout, getTimeUntilExpiry } = useAdminAuth();
@@ -34,13 +41,26 @@ const BingoAdmin = () => {
     getStats
   } = useBingoAdmin();
 
+  const {
+    games,
+    currentGame,
+    createGame,
+    startGame,
+    finishGame,
+    deleteGame,
+    setCurrentGame,
+    addCalledNumber
+  } = useGameManager();
+
   const [showForm, setShowForm] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
-  const [viewMode, setViewMode] = useState('list'); // 'list' o 'search'
+  const [viewMode, setViewMode] = useState('games'); // 'games', 'assignments', 'search'
+  const [showGameForm, setShowGameForm] = useState(false);
+  const [newGameName, setNewGameName] = useState('');
 
   // Filtrar asignaciones según el modo de vista
   const filteredAssignments = viewMode === 'search' 
@@ -75,6 +95,31 @@ const BingoAdmin = () => {
   const handleDelete = (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta asignación?')) {
       removeAssignment(id);
+    }
+  };
+
+  const handleCreateGame = () => {
+    if (newGameName.trim()) {
+      createGame(newGameName);
+      setNewGameName('');
+      setShowGameForm(false);
+    }
+  };
+
+  const handleStartGame = (gameId) => {
+    startGame(gameId);
+    setCurrentGame(gameId);
+  };
+
+  const handleFinishGame = (gameId) => {
+    if (window.confirm('¿Estás seguro de que quieres finalizar este juego?')) {
+      finishGame(gameId);
+    }
+  };
+
+  const handleDeleteGame = (gameId) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este juego permanentemente?')) {
+      deleteGame(gameId);
     }
   };
 
@@ -132,15 +177,26 @@ const BingoAdmin = () => {
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex gap-2">
               <button
-                onClick={() => setViewMode('list')}
+                onClick={() => setViewMode('games')}
                 className={`px-4 py-2 rounded-lg transition duration-300 ${
-                  viewMode === 'list' 
+                  viewMode === 'games' 
+                    ? 'bg-white text-purple-600 font-semibold' 
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                <FontAwesomeIcon icon={faGamepad} className="mr-2" />
+                Gestión de Juegos
+              </button>
+              <button
+                onClick={() => setViewMode('assignments')}
+                className={`px-4 py-2 rounded-lg transition duration-300 ${
+                  viewMode === 'assignments' 
                     ? 'bg-white text-purple-600 font-semibold' 
                     : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
                 <FontAwesomeIcon icon={faChartBar} className="mr-2" />
-                Listado por Sorteo
+                Asignaciones
               </button>
               <button
                 onClick={() => setViewMode('search')}
@@ -155,7 +211,7 @@ const BingoAdmin = () => {
               </button>
             </div>
 
-            {viewMode === 'list' && (
+            {viewMode === 'assignments' && (
               <div className="flex items-center gap-2">
                 <label className="text-white font-medium">Sorteo:</label>
                 <select
@@ -170,6 +226,16 @@ const BingoAdmin = () => {
                   ))}
                 </select>
               </div>
+            )}
+
+            {viewMode === 'games' && (
+              <button
+                onClick={() => setShowGameForm(true)}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+              >
+                <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                Crear Juego
+              </button>
             )}
           </div>
 
@@ -204,19 +270,211 @@ const BingoAdmin = () => {
           )}
         </div>
 
-        {/* Estadísticas */}
-        <AssignmentStats stats={stats} currentRaffle={currentRaffle} />
+        {/* Estadísticas - solo mostrar en modo asignaciones */}
+        {viewMode === 'assignments' && (
+          <AssignmentStats stats={stats} currentRaffle={currentRaffle} />
+        )}
+
+        {/* Gestión de Juegos */}
+        {viewMode === 'games' && (
+          <>
+            {/* Juego actual si existe */}
+            {currentGame && (
+              <div className="bg-white rounded-xl shadow-2xl p-6 mb-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                      Juego Activo: {currentGame.name}
+                    </h2>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span>ID: {currentGame.id}</span>
+                      <span className={`px-3 py-1 rounded-full text-white ${
+                        currentGame.status === 'active' ? 'bg-green-500' :
+                        currentGame.status === 'waiting' ? 'bg-yellow-500' : 'bg-gray-500'
+                      }`}>
+                        {currentGame.status === 'active' ? 'Activo' :
+                         currentGame.status === 'waiting' ? 'En Espera' : 'Finalizado'}
+                      </span>
+                      <span>Números cantados: {currentGame.calledNumbers?.length || 0}/75</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {currentGame.status === 'waiting' && (
+                      <button
+                        onClick={() => handleStartGame(currentGame.id)}
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faPlay} className="mr-2" />
+                        Iniciar
+                      </button>
+                    )}
+                    {currentGame.status === 'active' && (
+                      <button
+                        onClick={() => handleFinishGame(currentGame.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faStop} className="mr-2" />
+                        Finalizar
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Controles de Bingo */}
+                {currentGame.status === 'active' && (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <NumberDisplay 
+                        currentNumber={currentGame.currentNumber}
+                        calledNumbers={currentGame.calledNumbers || []}
+                      />
+                    </div>
+                    <div>
+                      <BingoControls 
+                        onCallNumber={(number) => addCalledNumber(currentGame.id, number)}
+                        calledNumbers={currentGame.calledNumbers || []}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Lista de juegos */}
+            <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  Todos los Juegos ({games.length})
+                </h2>
+              </div>
+
+              {games.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Nombre
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Estado
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Creado
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Números
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Acciones
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {games.map((game) => (
+                        <tr key={game.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {game.id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {game.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              game.status === 'active' ? 'bg-green-100 text-green-800' :
+                              game.status === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {game.status === 'active' ? 'Activo' :
+                               game.status === 'waiting' ? 'En Espera' :
+                               'Finalizado'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(game.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {game.calledNumbers?.length || 0}/75
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex gap-2">
+                              {game.status === 'waiting' && (
+                                <button
+                                  onClick={() => handleStartGame(game.id)}
+                                  className="text-green-600 hover:text-green-900"
+                                  title="Iniciar juego"
+                                >
+                                  <FontAwesomeIcon icon={faPlay} />
+                                </button>
+                              )}
+                              {game.status === 'active' && (
+                                <button
+                                  onClick={() => handleFinishGame(game.id)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Finalizar juego"
+                                >
+                                  <FontAwesomeIcon icon={faStop} />
+                                </button>
+                              )}
+                              {game.status !== 'active' && (
+                                <button
+                                  onClick={() => handleDeleteGame(game.id)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Eliminar juego"
+                                >
+                                  <FontAwesomeIcon icon={faTrash} />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => setCurrentGame(game.id)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Seleccionar como juego activo"
+                              >
+                                <FontAwesomeIcon icon={faCog} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-6xl text-gray-300 mb-4">🎮</div>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                    No hay juegos creados
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    Crea tu primer juego para comenzar
+                  </p>
+                  <button
+                    onClick={() => setShowGameForm(true)}
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                    Crear Primer Juego
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Tabla de asignaciones */}
-        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              {viewMode === 'list' 
-                ? `Asignaciones - Sorteo ${currentRaffle}` 
-                : `Resultados de búsqueda (${filteredAssignments.length})`
-              }
-            </h2>
-          </div>
+        {(viewMode === 'assignments' || viewMode === 'search') && (
+          <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                {viewMode === 'assignments' 
+                  ? `Asignaciones - Sorteo ${currentRaffle}` 
+                  : `Resultados de búsqueda (${filteredAssignments.length})`
+                }
+              </h2>
+            </div>
 
           {currentAssignments.length > 0 ? (
             <>
@@ -368,9 +626,10 @@ const BingoAdmin = () => {
             </div>
           )}
         </div>
+        )}
       </div>
 
-      {/* Modal de formulario */}
+      {/* Modal de formulario para asignaciones */}
       {showForm && (
         <AssignmentForm
           assignment={editingAssignment}
@@ -381,6 +640,41 @@ const BingoAdmin = () => {
             setEditingAssignment(null);
           }}
         />
+      )}
+
+      {/* Modal para crear juego */}
+      {showGameForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Crear Nuevo Juego</h3>
+            <input
+              type="text"
+              placeholder="Nombre del juego"
+              value={newGameName}
+              onChange={(e) => setNewGameName(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:outline-none mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={handleCreateGame}
+                disabled={!newGameName.trim()}
+                className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white py-3 rounded-lg transition-colors"
+              >
+                Crear Juego
+              </button>
+              <button
+                onClick={() => {
+                  setShowGameForm(false);
+                  setNewGameName('');
+                }}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

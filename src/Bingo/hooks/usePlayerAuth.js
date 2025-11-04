@@ -1,0 +1,83 @@
+import { useState, useEffect } from 'react';
+
+// Hook para gestionar la autenticación de jugadores
+export const usePlayerAuth = () => {
+  const [player, setPlayer] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentGame, setCurrentGame] = useState(null);
+
+  const PLAYER_STORAGE_KEY = 'bingoPlayerAuth';
+
+  useEffect(() => {
+    checkStoredPlayer();
+  }, []);
+
+  const checkStoredPlayer = () => {
+    try {
+      const storedPlayer = localStorage.getItem(PLAYER_STORAGE_KEY);
+      if (storedPlayer) {
+        const playerData = JSON.parse(storedPlayer);
+        setPlayer(playerData);
+        setCurrentGame(playerData.gameId);
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error('Error al verificar jugador:', error);
+      localStorage.removeItem(PLAYER_STORAGE_KEY);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginPlayer = (playerData) => {
+    const playerInfo = {
+      id: Date.now() + Math.random(),
+      name: playerData.name,
+      gameId: playerData.gameId,
+      cardNumber: playerData.cardNumber || null,
+      joinedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(playerInfo));
+    setPlayer(playerInfo);
+    setCurrentGame(playerData.gameId);
+    setIsAuthenticated(true);
+    return playerInfo;
+  };
+
+  const updatePlayerCard = (cardNumber) => {
+    if (player) {
+      const updatedPlayer = { ...player, cardNumber };
+      localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(updatedPlayer));
+      setPlayer(updatedPlayer);
+    }
+  };
+
+  const logoutPlayer = () => {
+    localStorage.removeItem(PLAYER_STORAGE_KEY);
+    setPlayer(null);
+    setCurrentGame(null);
+    setIsAuthenticated(false);
+  };
+
+  const switchGame = (gameId) => {
+    if (player) {
+      const updatedPlayer = { ...player, gameId, cardNumber: null };
+      localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(updatedPlayer));
+      setPlayer(updatedPlayer);
+      setCurrentGame(gameId);
+    }
+  };
+
+  return {
+    player,
+    isAuthenticated,
+    isLoading,
+    currentGame,
+    loginPlayer,
+    updatePlayerCard,
+    logoutPlayer,
+    switchGame
+  };
+};
