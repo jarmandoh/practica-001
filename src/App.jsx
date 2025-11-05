@@ -10,8 +10,9 @@ import {
   BingoCardViewer, 
   BingoCardsList, 
   ProtectedBingoAdmin,
-  ProtectedBingoPlayer
-} from './Bingo'
+  ProtectedBingoPlayer,
+  ProtectedBingoGestor
+} from './Bingo';
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
@@ -39,6 +40,7 @@ function App() {
           {/* Rutas independientes de Bingo sin Navbar/Footer */}
           <Route path="/bingo" element={<BingoLanding />} />
           <Route path="/bingo/admin" element={<ProtectedBingoAdmin />} />
+          <Route path="/bingo/gestor" element={<ProtectedBingoGestor />} />
           <Route path="/bingo/player" element={<ProtectedBingoPlayer />} />
           <Route path="/bingo/cartones" element={<BingoCardsList />} />
           <Route path="/bingo/carton/:cardId" element={<BingoCardViewer />} />

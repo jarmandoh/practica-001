@@ -14,6 +14,7 @@ import { useGameManager } from '../hooks/useGameManager';
 import { useBingoAdmin } from '../hooks/useBingoAdmin';
 import NumberDisplay from '../components/NumberDisplay';
 import BingoCard from '../components/BingoCard';
+import { SocketProvider } from '../context/SocketContext';
 
 const BingoPlayer = () => {
   const { player, logoutPlayer, updatePlayerCard } = usePlayerAuth();
@@ -40,32 +41,10 @@ const BingoPlayer = () => {
     
     if (availableCard) {
       updatePlayerCard(availableCard);
-      // Generar cartón para mostrar
-      generatePlayerCardFromNumber(availableCard);
     }
   }, [getAssignmentsByRaffle, updatePlayerCard]);
 
-  useEffect(() => {
-    if (player && player.gameId) {
-      const game = getGameById(player.gameId);
-      if (game) {
-        setCurrentGame(game);
-        setGameNotFound(false);
-        
-        // Si el jugador no tiene cartón asignado, intentar asignar uno
-        if (!player.cardNumber) {
-          assignRandomCard();
-        } else {
-          // Generar el cartón del jugador
-          generatePlayerCardFromNumber(player.cardNumber);
-        }
-      } else {
-        setGameNotFound(true);
-      }
-    }
-  }, [player, getGameById, assignRandomCard]);
-
-  const generatePlayerCardFromNumber = (cardNumber) => {
+  const generatePlayerCardFromNumber = useCallback((cardNumber) => {
     // Generar cartón basado en el número (simulado)
     const card = [];
     const ranges = [
@@ -95,7 +74,34 @@ const BingoPlayer = () => {
     }
     
     setPlayerCard(card);
-  };
+  }, []);
+
+  // useEffect para manejar cambios en el juego
+  useEffect(() => {
+    if (player?.gameId) {
+      const game = getGameById(player.gameId);
+      if (game) {
+        setCurrentGame(game);
+        setGameNotFound(false);
+      } else {
+        setGameNotFound(true);
+      }
+    }
+  }, [player?.gameId, getGameById]);
+
+  // useEffect separado para la asignación de cartón - solo ejecutar una vez cuando no hay cartón
+  useEffect(() => {
+    if (player?.gameId && !player?.cardNumber && !playerCard) {
+      assignRandomCard();
+    }
+  }, [player?.gameId, player?.cardNumber, playerCard, assignRandomCard]);
+
+  // useEffect separado para generar el cartón cuando se asigna un número
+  useEffect(() => {
+    if (player?.cardNumber && !playerCard) {
+      generatePlayerCardFromNumber(player.cardNumber);
+    }
+  }, [player?.cardNumber, playerCard, generatePlayerCardFromNumber]);
 
   const handleLogout = () => {
     if (window.confirm('¿Estás seguro de que quieres salir del juego?')) {
@@ -132,7 +138,8 @@ const BingoPlayer = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-600 to-blue-600 p-4">
+    <SocketProvider>
+      <div className="min-h-screen bg-linear-to-br from-green-600 to-blue-600 p-4">
       {/* Number Display sticky */}
       <div className="fixed top-4 left-4 z-50">
         <NumberDisplay 
@@ -276,7 +283,8 @@ const BingoPlayer = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </SocketProvider>
   );
 };
 

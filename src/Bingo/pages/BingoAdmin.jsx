@@ -25,6 +25,9 @@ import AssignmentForm from '../components/AssignmentForm';
 import AssignmentStats from '../components/AssignmentStats';
 import BingoControls from '../components/BingoControls';
 import NumberDisplay from '../components/NumberDisplay';
+import GestorPasswordManager from '../components/GestorPasswordManager';
+import GameCreationModal from '../components/GameCreationModal';
+import { SocketProvider } from '../context/SocketContext';
 
 const BingoAdmin = () => {
   const { logout, getTimeUntilExpiry } = useAdminAuth();
@@ -49,7 +52,8 @@ const BingoAdmin = () => {
     finishGame,
     deleteGame,
     setCurrentGame,
-    addCalledNumber
+    addCalledNumber,
+    setGestorPassword
   } = useGameManager();
 
   const [showForm, setShowForm] = useState(false);
@@ -60,7 +64,7 @@ const BingoAdmin = () => {
   const [itemsPerPage] = useState(20);
   const [viewMode, setViewMode] = useState('games'); // 'games', 'assignments', 'search'
   const [showGameForm, setShowGameForm] = useState(false);
-  const [newGameName, setNewGameName] = useState('');
+  const [showPasswordManager, setShowPasswordManager] = useState(false);
 
   // Filtrar asignaciones según el modo de vista
   const filteredAssignments = viewMode === 'search' 
@@ -98,12 +102,9 @@ const BingoAdmin = () => {
     }
   };
 
-  const handleCreateGame = () => {
-    if (newGameName.trim()) {
-      createGame(newGameName);
-      setNewGameName('');
-      setShowGameForm(false);
-    }
+  const handleCreateGame = (gameData) => {
+    createGame(gameData);
+    setShowGameForm(false);
   };
 
   const handleStartGame = (gameId) => {
@@ -133,7 +134,8 @@ const BingoAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-600 to-blue-600 p-4">
+    <SocketProvider>
+      <div className="min-h-screen bg-linear-to-br from-purple-600 to-blue-600 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
@@ -148,6 +150,14 @@ const BingoAdmin = () => {
               )}
             </div>
             <div className="flex gap-3">
+              <button
+                onClick={() => setShowPasswordManager(true)}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                title="Gestionar contraseñas de gestores"
+              >
+                <FontAwesomeIcon icon={faCog} className="mr-2" />
+                Gestores
+              </button>
               <Link 
                 to="/bingo" 
                 className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition duration-300 inline-flex items-center"
@@ -369,6 +379,9 @@ const BingoAdmin = () => {
                           Números
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Patrones
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Acciones
                         </th>
                       </tr>
@@ -399,6 +412,42 @@ const BingoAdmin = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {game.calledNumbers?.length || 0}/75
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex flex-wrap gap-1">
+                              {game.settings?.winPatterns?.slice(0, 3).map(pattern => (
+                                <span key={pattern} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                                  {pattern === 'line' ? 'Línea' :
+                                   pattern === 'horizontalLine1' ? 'H1' :
+                                   pattern === 'horizontalLine2' ? 'H2' :
+                                   pattern === 'horizontalLine3' ? 'H3' :
+                                   pattern === 'horizontalLine4' ? 'H4' :
+                                   pattern === 'horizontalLine5' ? 'H5' :
+                                   pattern === 'letterI1' ? 'I1' :
+                                   pattern === 'letterI2' ? 'I2' :
+                                   pattern === 'letterI3' ? 'I3' :
+                                   pattern === 'letterI4' ? 'I4' :
+                                   pattern === 'letterI5' ? 'I5' :
+                                   pattern === 'diagonal' ? 'Diagonal' :
+                                   pattern === 'fourCorners' ? 'Esquinas' :
+                                   pattern === 'letterX' ? 'X' :
+                                   pattern === 'letterT' ? 'T' :
+                                   pattern === 'letterL' ? 'L' :
+                                   pattern === 'cross' ? 'Cruz' :
+                                   pattern === 'fullCard' ? 'Completo' : pattern}
+                                </span>
+                              ))}
+                              {game.settings?.customPattern && (
+                                <span className="inline-flex px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">
+                                  Personalizado
+                                </span>
+                              )}
+                              {game.settings?.winPatterns?.length > 3 && (
+                                <span className="text-xs text-gray-400">
+                                  +{game.settings.winPatterns.length - 3} más
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex gap-2">
                               {game.status === 'waiting' && (
@@ -420,21 +469,21 @@ const BingoAdmin = () => {
                                 </button>
                               )}
                               {game.status !== 'active' && (
-                                <button
-                                  onClick={() => handleDeleteGame(game.id)}
-                                  className="text-red-600 hover:text-red-900"
-                                  title="Eliminar juego"
-                                >
-                                  <FontAwesomeIcon icon={faTrash} />
-                                </button>
-                              )}
                               <button
-                                onClick={() => setCurrentGame(game.id)}
-                                className="text-blue-600 hover:text-blue-900"
-                                title="Seleccionar como juego activo"
+                                onClick={() => handleDeleteGame(game.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Eliminar juego"
                               >
-                                <FontAwesomeIcon icon={faCog} />
+                                <FontAwesomeIcon icon={faTrash} />
                               </button>
+                            )}
+                            <button
+                              onClick={() => setCurrentGame(game.id)}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="Seleccionar como juego activo"
+                            >
+                              <FontAwesomeIcon icon={faCog} />
+                            </button>
                             </div>
                           </td>
                         </tr>
@@ -644,39 +693,22 @@ const BingoAdmin = () => {
 
       {/* Modal para crear juego */}
       {showGameForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Crear Nuevo Juego</h3>
-            <input
-              type="text"
-              placeholder="Nombre del juego"
-              value={newGameName}
-              onChange={(e) => setNewGameName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:outline-none mb-4"
-              autoFocus
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={handleCreateGame}
-                disabled={!newGameName.trim()}
-                className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white py-3 rounded-lg transition-colors"
-              >
-                Crear Juego
-              </button>
-              <button
-                onClick={() => {
-                  setShowGameForm(false);
-                  setNewGameName('');
-                }}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+        <GameCreationModal
+          onCreateGame={handleCreateGame}
+          onClose={() => setShowGameForm(false)}
+        />
       )}
-    </div>
+
+      {/* Modal de gestión de contraseñas de gestores */}
+      {showPasswordManager && (
+        <GestorPasswordManager
+          games={games}
+          onUpdateGestorPassword={setGestorPassword}
+          onClose={() => setShowPasswordManager(false)}
+        />
+      )}
+      </div>
+    </SocketProvider>
   );
 };
 
