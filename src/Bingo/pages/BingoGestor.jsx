@@ -72,6 +72,25 @@ const BingoGestor = () => {
     return acc;
   }, new Set());
   
+  // Calcular cartones totales asignados para el sorteo actual
+  const totalCardsAssigned = assignments.reduce((total, assignment) => {
+    const startCard = parseInt(assignment.startCard) || 0;
+    const endCard = parseInt(assignment.endCard) || 0;
+    const quantity = assignment.quantity || 0;
+    
+    if (quantity > 0) {
+      return total + quantity;
+    } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
+      return total + (endCard - startCard + 1);
+    } else {
+      return total + 1;
+    }
+  }, 0) || 0;
+  
+  // Verificar si se ha alcanzado el límite de cartones
+  const maxCards = currentGame?.maxPlayers || 1200;
+  const isCardLimitReached = totalCardsAssigned >= maxCards;
+  
   // Generar lista de participantes a partir de las asignaciones
   const participants = assignments.flatMap(assignment => {
     const cards = [];
@@ -441,7 +460,12 @@ const BingoGestor = () => {
                   </div>
                   <button
                     onClick={() => setShowForm(true)}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                    className={`px-4 py-2 rounded-lg transition duration-300 inline-flex items-center ${
+                      isCardLimitReached
+                        ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                    }`}
+                    disabled={isCardLimitReached}
                   >
                     <FontAwesomeIcon icon={faPlus} className="mr-2" />
                     Nueva Asignación
@@ -463,7 +487,13 @@ const BingoGestor = () => {
                       assignCard(testAssignment);
                       updateGameStats();
                     }}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                    disabled={isCardLimitReached}
+                    className={`px-4 py-2 rounded-lg transition duration-300 inline-flex items-center ${
+                      isCardLimitReached
+                        ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                    }`}
+                    title={isCardLimitReached ? `Límite de cartones alcanzado (${maxCards})` : 'Crear asignación de prueba'}
                   >
                     <FontAwesomeIcon icon={faPlus} className="mr-2" />
                     Prueba
