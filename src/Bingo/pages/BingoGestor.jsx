@@ -12,54 +12,191 @@ import {
   faClock,
   faUsers,
   faListOl,
-  faCheckCircle
+  faCheckCircle,
+  faPlus,
+  faEdit,
+  faTrash,
+  faTimes,
+  faSearch,
+  faChartBar
 } from '@fortawesome/free-solid-svg-icons';
 import { useGestorAuth } from '../hooks/useGestorAuth';
 import { useGameManager } from '../hooks/useGameManager';
+import { useBingoAdmin } from '../hooks/useBingoAdmin';
 import { SocketProvider } from '../context/SocketContext';
 import NumberDisplay from '../components/NumberDisplay';
 import BingoControls from '../components/BingoControls';
+import AssignmentForm from '../components/AssignmentForm';
+import AssignmentStats from '../components/AssignmentStats';
 
 const BingoGestor = () => {
   const { gestor, logoutGestor, getTimeUntilExpiry } = useGestorAuth();
   const { getGameById, updateGame, addCalledNumber } = useGameManager();
+  const {
+    assignCard,
+    updateAssignment,
+    removeAssignment,
+    getAssignmentsByRaffle
+  } = useBingoAdmin();
+
   const [currentGame, setCurrentGame] = useState(null);
-  const [participants, setParticipants] = useState([]);
   const [gameStats, setGameStats] = useState({
     totalCards: 0,
     activeCards: 0,
     winners: 0
   });
 
+  // Estados para manejo de asignaciones
+  const [showForm, setShowForm] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState(null);
+  const [viewMode, setViewMode] = useState('game');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showParticipantNames, setShowParticipantNames] = useState(false);
+
+  // El sorteo actual se obtiene del juego actual del gestor
+  const currentRaffle = currentGame?.currentRaffle || 1;
+
+  // Variables derivadas
+  const assignments = getAssignmentsByRaffle(currentRaffle);
+  console.log('Asignaciones para sorteo', currentRaffle, ':', assignments);
+  const filteredAssignments = assignments; // ya están filtrados por sorteo
+  const searchResults = searchQuery 
+    ? assignments.filter(a => 
+        a.participantName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
+  const assignedCards = assignments.reduce((acc, assignment) => {
+    for (let i = assignment.startCard; i <= assignment.endCard; i++) {
+      acc.add(i);
+    }
+    return acc;
+  }, new Set());
+  
+  // Generar lista de participantes a partir de las asignaciones
+  const participants = assignments.flatMap(assignment => {
+    const cards = [];
+    for (let i = assignment.startCard; i <= assignment.endCard; i++) {
+      cards.push({
+        id: `${assignment.id}-${i}`,
+        assignmentId: assignment.id,
+        participantName: assignment.participantName,
+        cardNumber: i,
+        paid: assignment.paid || false,
+        winner: assignment.winner || false
+      });
+    }
+    return cards;
+  }).filter(participant => showParticipantNames || participant.paid);
+
   useEffect(() => {
     if (gestor?.gameId) {
       const game = getGameById(gestor.gameId);
       setCurrentGame(game);
       
-      // Simular obtención de participantes (esto se integraría con el sistema real)
-      loadParticipants();
-      updateGameStats(game);
+      // Actualizar estadísticas cuando cambie el juego o el sorteo
+      if (game) {
+        const currentRaffleNumber = game.currentRaffle || 1;
+        const assignments = getAssignmentsByRaffle(currentRaffleNumber);
+        const totalCardsGenerated = assignments.reduce((total, assignment) => {
+          // Validar que las propiedades existan y sean números válidos
+          const startCard = parseInt(assignment.startCard) || 0;
+          const endCard = parseInt(assignment.endCard) || 0;
+          const quantity = assignment.quantity || 0;
+          
+          // Si tiene quantity definido, usarlo; sino calcular del rango
+          if (quantity > 0) {
+            return total + quantity;
+          } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
+            return total + (endCard - startCard + 1);
+          } else {
+            return total + 1; // Al menos contar 1 cartón por asignación
+          }
+        }, 0) || 0;
+        
+        setGameStats({
+          totalCards: totalCardsGenerated,
+          activeCards: assignments.filter(a => a.paid).length,
+          winners: assignments.filter(a => a.winner).length
+        });
+      }
     }
-  }, [gestor, getGameById]);
+  }, [gestor, getGameById, getAssignmentsByRaffle]);
 
-  const loadParticipants = () => {
-    // Obtener participantes del localStorage o sistema de gestión
-    const assignments = JSON.parse(localStorage.getItem('bingoAssignments') || '[]');
-    const gameParticipants = assignments.filter(a => a.raffleId === 1); // Por ahora usar sorteo 1
-    setParticipants(gameParticipants);
-  };
+  // Efecto separado para actualizar estadísticas cuando cambie el sorteo actual
+  useEffect(() => {
+    if (currentGame) {
+      const assignments = getAssignmentsByRaffle(currentRaffle);
+      const totalCardsGenerated = assignments.reduce((total, assignment) => {
+        // Validar que las propiedades existan y sean números válidos
+        const startCard = parseInt(assignment.startCard) || 0;
+        const endCard = parseInt(assignment.endCard) || 0;
+        const quantity = assignment.quantity || 0;
+        
+        // Si tiene quantity definido, usarlo; sino calcular del rango
+        if (quantity > 0) {
+          return total + quantity;
+        } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
+          return total + (endCard - startCard + 1);
+        } else {
+          return total + 1; // Al menos contar 1 cartón por asignación
+        }
+      }, 0) || 0;
+      
+      setGameStats({
+        totalCards: totalCardsGenerated,
+        activeCards: assignments.filter(a => a.paid).length,
+        winners: assignments.filter(a => a.winner).length
+      });
+    }
+  }, [currentRaffle, getAssignmentsByRaffle, currentGame]);
 
-  const updateGameStats = (game) => {
-    if (!game) return;
-    
-    const assignments = JSON.parse(localStorage.getItem('bingoAssignments') || '[]');
-    const gameParticipants = assignments.filter(a => a.raffleId === 1);
+  const updateGameStats = () => {
+    const assignments = getAssignmentsByRaffle(currentRaffle);
+    const totalCardsGenerated = assignments.reduce((total, assignment) => {
+      // Validar que las propiedades existan y sean números válidos
+      const startCard = parseInt(assignment.startCard) || 0;
+      const endCard = parseInt(assignment.endCard) || 0;
+      const quantity = assignment.quantity || 0;
+      
+      // Si tiene quantity definido, usarlo; sino calcular del rango
+      if (quantity > 0) {
+        return total + quantity;
+      } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
+        return total + (endCard - startCard + 1);
+      } else {
+        return total + 1; // Al menos contar 1 cartón por asignación
+      }
+    }, 0) || 0;
     
     setGameStats({
-      totalCards: gameParticipants.length,
-      activeCards: gameParticipants.filter(p => !p.winner).length,
-      winners: gameParticipants.filter(p => p.winner).length
+      totalCards: totalCardsGenerated,
+      activeCards: assignments.filter(a => a.paid).length,
+      winners: assignments.filter(a => a.winner).length
     });
+  };
+
+  // Funciones de manejo de asignaciones
+  const handleFormSubmit = (formData) => {
+    if (editingAssignment) {
+      updateAssignment(editingAssignment.id, formData);
+      setEditingAssignment(null);
+    } else {
+      assignCard(formData);
+    }
+    setShowForm(false);
+    updateGameStats();
+  };
+
+  const handleEdit = (assignment) => {
+    setEditingAssignment(assignment);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar esta asignación?')) {
+      removeAssignment(id);
+      updateGameStats();
+    }
   };
 
   const handleCallNumber = (number) => {
@@ -71,15 +208,24 @@ const BingoGestor = () => {
     }
   };
 
-  const handleMarkWinner = (participantId) => {
+  const handleMarkWinner = (participantId, assignmentId) => {
     const assignments = JSON.parse(localStorage.getItem('bingoAssignments') || '[]');
     const updatedAssignments = assignments.map(a => 
-      a.id === participantId ? { ...a, winner: true } : a
+      a.id === assignmentId ? { ...a, winner: true } : a
     );
     localStorage.setItem('bingoAssignments', JSON.stringify(updatedAssignments));
     
-    loadParticipants();
-    updateGameStats(currentGame);
+    updateGameStats();
+  };
+
+  const handleTogglePaid = (assignmentId) => {
+    const assignments = JSON.parse(localStorage.getItem('bingoAssignments') || '[]');
+    const updatedAssignments = assignments.map(a => 
+      a.id === assignmentId ? { ...a, paid: !a.paid } : a
+    );
+    localStorage.setItem('bingoAssignments', JSON.stringify(updatedAssignments));
+    
+    updateGameStats();
   };
 
   const handlePauseGame = () => {
@@ -193,8 +339,24 @@ const BingoGestor = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm">Cartones Total</p>
-                  <p className="text-2xl font-bold text-white">{gameStats.totalCards}</p>
+                  <p className="text-orange-100 text-sm">Cartones Total (Sorteo {currentRaffle})</p>
+                  <p className="text-2xl font-bold text-white">
+                    {assignments.reduce((total, assignment) => {
+                      // Validar que las propiedades existan y sean números válidos
+                      const startCard = parseInt(assignment.startCard) || 0;
+                      const endCard = parseInt(assignment.endCard) || 0;
+                      const quantity = assignment.quantity || 0;
+                      
+                      // Si tiene quantity definido, usarlo; sino calcular del rango
+                      if (quantity > 0) {
+                        return total + quantity;
+                      } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
+                        return total + (endCard - startCard + 1);
+                      } else {
+                        return total + 1; // Al menos contar 1 cartón por asignación
+                      }
+                    }, 0) || 0}
+                  </p>
                 </div>
                 <FontAwesomeIcon icon={faListOl} className="text-3xl text-orange-300" />
               </div>
@@ -202,7 +364,7 @@ const BingoGestor = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm">Cartones Activos</p>
+                  <p className="text-orange-100 text-sm">Cartones Activos (Sorteo {currentRaffle})</p>
                   <p className="text-2xl font-bold text-white">{gameStats.activeCards}</p>
                 </div>
                 <FontAwesomeIcon icon={faUsers} className="text-3xl text-green-300" />
@@ -211,7 +373,7 @@ const BingoGestor = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm">Ganadores</p>
+                  <p className="text-orange-100 text-sm">Ganadores (Sorteo {currentRaffle})</p>
                   <p className="text-2xl font-bold text-white">{gameStats.winners}</p>
                 </div>
                 <FontAwesomeIcon icon={faTrophy} className="text-3xl text-yellow-300" />
@@ -228,7 +390,91 @@ const BingoGestor = () => {
             </div>
           </div>
 
+          {/* Controles de vista */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
+            <div className="flex gap-4 items-center justify-between">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('game')}
+                  className={`px-4 py-2 rounded-lg transition duration-300 ${
+                    viewMode === 'game' 
+                      ? 'bg-white text-orange-600 font-semibold' 
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faGamepad} className="mr-2" />
+                  Control del Juego
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode('assignments');
+                  }}
+                  className={`px-4 py-2 rounded-lg transition duration-300 ${
+                    viewMode === 'assignments' 
+                      ? 'bg-white text-orange-600 font-semibold' 
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faChartBar} className="mr-2" />
+                  Gestión de Cartones
+                </button>
+                <button
+                  onClick={() => setViewMode('search')}
+                  className={`px-4 py-2 rounded-lg transition duration-300 ${
+                    viewMode === 'search' 
+                      ? 'bg-white text-orange-600 font-semibold' 
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faSearch} className="mr-2" />
+                  Búsqueda
+                </button>
+              </div>
+
+              {viewMode === 'assignments' && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-white font-medium">Sorteo Actual:</label>
+                    <span className="px-3 py-2 bg-white/20 text-white rounded-lg font-semibold">
+                      Sorteo {currentRaffle}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                  >
+                    <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                    Nueva Asignación
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Crear asignación de prueba
+                      const testAssignment = {
+                        id: Date.now().toString(),
+                        participantName: `Participante Prueba ${Math.floor(Math.random() * 100)}`,
+                        startCard: Math.floor(Math.random() * 50) + 1,
+                        endCard: Math.floor(Math.random() * 50) + 51,
+                        quantity: 10,
+                        paid: Math.random() > 0.5,
+                        raffleNumber: currentRaffle,
+                        createdAt: new Date().toISOString()
+                      };
+                      testAssignment.quantity = testAssignment.endCard - testAssignment.startCard + 1;
+                      assignCard(testAssignment);
+                      updateGameStats();
+                    }}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                  >
+                    <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                    Prueba
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Controles del Juego */}
+          {viewMode === 'game' && (
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             {/* Controles de Números */}
             <div className="bg-white rounded-xl shadow-2xl p-6">
@@ -272,9 +518,28 @@ const BingoGestor = () => {
             {/* Lista de Participantes */}
             <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-semibold text-gray-800">
-                  Participantes ({participants.length})
-                </h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-semibold text-gray-800">
+                    Participantes ({participants.length})
+                  </h2>
+                  <button
+                    onClick={() => setShowParticipantNames(!showParticipantNames)}
+                    className={`px-4 py-2 rounded-lg transition-colors text-sm ${
+                      showParticipantNames 
+                        ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faUser} className="mr-2" />
+                    {showParticipantNames ? 'Ocultar Nombres' : 'Mostrar Nombres'}
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  {showParticipantNames 
+                    ? 'Mostrando todos los participantes'
+                    : 'Mostrando solo participantes con cartones pagados'
+                  }
+                </p>
               </div>
               <div className="max-h-96 overflow-y-auto">
                 {participants.length > 0 ? (
@@ -284,10 +549,19 @@ const BingoGestor = () => {
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="font-medium text-gray-900">
-                              {participant.firstName} {participant.lastName}
+                              {showParticipantNames 
+                                ? participant.participantName 
+                                : `Participante #${participant.cardNumber}`
+                              }
                             </p>
                             <p className="text-sm text-gray-500">
                               Cartón #{participant.cardNumber}
+                              {participant.paid && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
+                                  Pagado
+                                </span>
+                              )}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -298,7 +572,7 @@ const BingoGestor = () => {
                               </span>
                             ) : (
                               <button
-                                onClick={() => handleMarkWinner(participant.id)}
+                                onClick={() => handleMarkWinner(participant.id, participant.assignmentId)}
                                 className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs transition-colors"
                               >
                                 <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
@@ -314,16 +588,244 @@ const BingoGestor = () => {
                   <div className="text-center py-12">
                     <FontAwesomeIcon icon={faUsers} className="text-6xl text-gray-300 mb-4" />
                     <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                      No hay participantes
+                      {showParticipantNames 
+                        ? 'No hay participantes registrados'
+                        : 'No hay participantes con cartones pagados'
+                      }
                     </h3>
                     <p className="text-gray-500">
-                      Los participantes aparecerán aquí cuando se unan al juego
+                      {showParticipantNames 
+                        ? 'Los participantes aparecerán aquí cuando se asignen cartones'
+                        : 'Marca cartones como pagados en la gestión de asignaciones'
+                      }
                     </p>
                   </div>
                 )}
               </div>
             </div>
           </div>
+          )}
+
+          {/* Vista de Gestión de Asignaciones */}
+          {viewMode === 'assignments' && (
+            <div className="space-y-6">
+              {/* Estadísticas de Asignaciones */}
+              <AssignmentStats 
+                assignments={filteredAssignments}
+                currentRaffle={currentRaffle}
+                maxCards={currentGame?.maxPlayers || 1200}
+              />
+
+              {/* Lista de Asignaciones */}
+              <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-2xl font-semibold text-gray-800">
+                    Asignaciones del Sorteo {currentRaffle} ({filteredAssignments.length} total)
+                  </h2>
+                  {filteredAssignments.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      No hay asignaciones para este sorteo. Haz clic en "Nueva Asignación" para crear una.
+                    </p>
+                  )}
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Participante
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Cartones
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Estado
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Fecha
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Acciones
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredAssignments.length > 0 ? (
+                        filteredAssignments.map((assignment) => (
+                          <tr key={assignment.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {assignment.participantName || 'Sin nombre'}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                ID: {assignment.id} | Sorteo: {assignment.raffleNumber}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                {assignment.startCard} - {assignment.endCard}
+                                <span className="text-gray-500 ml-2">
+                                  ({assignment.quantity} cartones)
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  assignment.paid 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  <FontAwesomeIcon 
+                                    icon={assignment.paid ? faCheckCircle : faTimes} 
+                                    className="mr-1" 
+                                  />
+                                  {assignment.paid ? 'Pagado' : 'Pendiente'}
+                                </span>
+                                <button
+                                  onClick={() => handleTogglePaid(assignment.id)}
+                                  className={`px-2 py-1 rounded text-xs transition-colors ${
+                                    assignment.paid
+                                      ? 'bg-red-100 hover:bg-red-200 text-red-700'
+                                      : 'bg-green-100 hover:bg-green-200 text-green-700'
+                                  }`}
+                                  title={assignment.paid ? 'Marcar como pendiente' : 'Marcar como pagado'}
+                                >
+                                  {assignment.paid ? 'Desmarcar' : 'Marcar Pagado'}
+                                </button>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(assignment.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => handleEdit(assignment)}
+                                className="text-orange-600 hover:text-orange-900 mr-3"
+                              >
+                                <FontAwesomeIcon icon={faEdit} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(assignment.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                            No hay asignaciones para este sorteo
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Vista de Búsqueda */}
+          {viewMode === 'search' && (
+            <div className="bg-white rounded-xl shadow-2xl p-6">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                Búsqueda de Cartones
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Buscar por nombre de participante:
+                  </label>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Nombre del participante..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                </div>
+                {searchResults.length > 0 && (
+                  <div className="border border-gray-200 rounded-lg">
+                    <div className="p-3 bg-gray-50 border-b border-gray-200">
+                      <h3 className="font-medium text-gray-900">
+                        Resultados de búsqueda ({searchResults.length})
+                      </h3>
+                    </div>
+                    <div className="divide-y divide-gray-200">
+                      {searchResults.map((assignment) => (
+                        <div key={assignment.id} className="p-4">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {assignment.participantName}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Sorteo {assignment.raffleNumber} - Cartones {assignment.startCard} al {assignment.endCard}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEdit(assignment)}
+                                className="text-orange-600 hover:text-orange-900"
+                              >
+                                <FontAwesomeIcon icon={faEdit} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(assignment.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Formulario de Asignación */}
+          {showForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                      {editingAssignment ? 'Editar Asignación' : 'Nueva Asignación'}
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditingAssignment(null);
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="text-xl" />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <AssignmentForm
+                    assignment={editingAssignment}
+                    isCardAssigned={(cardNumber) => assignedCards.has(cardNumber)}
+                    onSubmit={handleFormSubmit}
+                    onClose={() => {
+                      setShowForm(false);
+                      setEditingAssignment(null);
+                    }}
+                    currentRaffle={currentRaffle}
+                    maxCards={currentGame?.maxPlayers || 1200}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Instrucciones */}
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">

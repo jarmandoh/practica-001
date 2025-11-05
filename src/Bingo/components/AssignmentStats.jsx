@@ -8,8 +8,17 @@ import {
   faBoxOpen
 } from '@fortawesome/free-solid-svg-icons';
 
-const AssignmentStats = ({ stats, currentRaffle }) => {
-  const percentage = stats.total > 0 ? ((stats.total / 1200) * 100).toFixed(1) : 0;
+const AssignmentStats = ({ assignments = [], currentRaffle, maxCards = 1200 }) => {
+  // Calcular estadísticas a partir de las asignaciones
+  const stats = {
+    total: assignments.length,
+    paid: assignments.filter(a => a.paid).length,
+    pending: assignments.filter(a => !a.paid).length,
+    winners: assignments.filter(a => a.winner).length,
+    available: maxCards - assignments.reduce((sum, a) => sum + (a.quantity || 1), 0)
+  };
+
+  const percentage = stats.total > 0 ? ((stats.total / maxCards) * 100).toFixed(1) : 0;
   const paidPercentage = stats.total > 0 ? ((stats.paid / stats.total) * 100).toFixed(1) : 0;
 
   return (
@@ -20,7 +29,7 @@ const AssignmentStats = ({ stats, currentRaffle }) => {
           <div>
             <p className="text-sm font-medium text-gray-600">Total Asignados</p>
             <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-            <p className="text-sm text-gray-500">{percentage}% de 1200</p>
+            <p className="text-sm text-gray-500">{percentage}% de {maxCards}</p>
           </div>
           <div className="bg-blue-100 p-3 rounded-full">
             <FontAwesomeIcon icon={faTicketAlt} className="text-2xl text-blue-600" />
@@ -59,7 +68,7 @@ const AssignmentStats = ({ stats, currentRaffle }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600">Pendientes</p>
-            <p className="text-3xl font-bold text-yellow-600">{stats.unpaid}</p>
+            <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
             <p className="text-sm text-gray-500">Sin pagar</p>
           </div>
           <div className="bg-yellow-100 p-3 rounded-full">
