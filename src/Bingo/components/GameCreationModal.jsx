@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faTimes, 
@@ -7,7 +7,9 @@ import {
   faPlus,
   faMinus,
   faCheck,
-  faThLarge
+  faThLarge,
+  faExclamationTriangle,
+  faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
 
 const GameCreationModal = ({ onCreateGame, onClose }) => {
@@ -19,6 +21,70 @@ const GameCreationModal = ({ onCreateGame, onClose }) => {
     customPattern: Array(25).fill(false), // 5x5 grid para el patrón personalizado
     enableCustomPattern: false
   });
+
+  const [snackbar, setSnackbar] = useState({
+    show: false,
+    message: '',
+    type: 'info' // 'info', 'error', 'warning', 'success'
+  });
+
+  // Función para mostrar snackbar
+  const showSnackbar = (message, type = 'info') => {
+    setSnackbar({ show: true, message, type });
+  };
+
+  // Auto-hide snackbar después de 3 segundos
+  useEffect(() => {
+    if (snackbar.show) {
+      const timer = setTimeout(() => {
+        setSnackbar(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar.show]);
+
+  // Componente Snackbar
+  const Snackbar = () => {
+    if (!snackbar.show) return null;
+
+    const getSnackbarStyle = () => {
+      switch (snackbar.type) {
+        case 'error':
+          return 'bg-red-500 text-white';
+        case 'warning':
+          return 'bg-yellow-500 text-white';
+        case 'success':
+          return 'bg-green-500 text-white';
+        default:
+          return 'bg-blue-500 text-white';
+      }
+    };
+
+    const getIcon = () => {
+      switch (snackbar.type) {
+        case 'error':
+        case 'warning':
+          return faExclamationTriangle;
+        default:
+          return faInfoCircle;
+      }
+    };
+
+    return (
+      <div className="fixed top-4 right-4 z-60 transition-all duration-300 ease-in-out transform translate-x-0">
+        <div className={`${getSnackbarStyle()} px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] max-w-[400px]`}>
+          <FontAwesomeIcon icon={getIcon()} className="shrink-0" />
+          <span className="flex-1">{snackbar.message}</span>
+          <button
+            onClick={() => setSnackbar(prev => ({ ...prev, show: false }))}
+            className="shrink-0 text-white hover:text-gray-200 transition-colors"
+          >
+            <FontAwesomeIcon icon={faTimes} />
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // Patrones de victoria predefinidos
   const predefinedPatterns = [
@@ -237,17 +303,17 @@ const GameCreationModal = ({ onCreateGame, onClose }) => {
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      alert('El nombre del juego es obligatorio');
+      showSnackbar('El nombre del juego es obligatorio', 'error');
       return;
     }
 
     if (formData.winPatterns.length === 0 && !formData.enableCustomPattern) {
-      alert('Debe seleccionar al menos un patrón de victoria');
+      showSnackbar('Debe seleccionar al menos un patrón de victoria', 'error');
       return;
     }
 
     if (formData.enableCustomPattern && !formData.customPattern.some(cell => cell)) {
-      alert('Debe marcar al menos una casilla en el patrón personalizado');
+      showSnackbar('Debe marcar al menos una casilla en el patrón personalizado', 'error');
       return;
     }
 
@@ -259,8 +325,13 @@ const GameCreationModal = ({ onCreateGame, onClose }) => {
       customPattern: formData.enableCustomPattern ? formData.customPattern : null
     };
 
-    onCreateGame(gameData);
-    onClose();
+    showSnackbar('¡Juego creado exitosamente!', 'success');
+    
+    // Pequeño delay para mostrar el snackbar antes de cerrar
+    setTimeout(() => {
+      onCreateGame(gameData);
+      onClose();
+    }, 1000);
   };
 
   const renderCustomPatternGrid = () => {
@@ -353,7 +424,23 @@ const GameCreationModal = ({ onCreateGame, onClose }) => {
                   <input
                     type="number"
                     value={formData.maxCards}
-                    onChange={(e) => setFormData({...formData, maxCards: Math.max(1, parseInt(e.target.value) || 1)})}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      if (value > 1200) {
+                        showSnackbar('Máximo 1200 cartones permitidos', 'warning');
+                        setFormData({...formData, maxCards: 1200});
+                      } else {
+                        setFormData({...formData, maxCards: Math.max(1, value)});
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      if (value > 1200) {
+                        setFormData({...formData, maxCards: 1200});
+                      } else if (value < 1) {
+                        setFormData({...formData, maxCards: 1});
+                      }
+                    }}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:outline-none text-center"
                     min="1"
                     max="1200"
@@ -503,6 +590,9 @@ const GameCreationModal = ({ onCreateGame, onClose }) => {
           </div>
         </form>
       </div>
+      
+      {/* Snackbar */}
+      <Snackbar />
     </div>
   );
 };
