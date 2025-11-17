@@ -135,16 +135,16 @@ const BingoAdmin = () => {
 
   return (
     <SocketProvider>
-      <div className="min-h-screen bg-linear-to-br from-purple-600 to-blue-600 p-4">
+      <div className="min-h-screen bg-linear-to-br from-purple-200 via-pink-100 to-blue-200 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
+        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 mb-6 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Administrador de Bingo</h1>
-              <p className="text-purple-100">Gestiona las asignaciones de cartones y participantes</p>
+              <h1 className="text-4xl font-bold text-gray-700 mb-2">Administrador de Bingo</h1>
+              <p className="text-gray-600">Gestiona las asignaciones de cartones y participantes</p>
               {timeLeft.valid && (
-                <p className="text-purple-200 text-sm mt-1">
+                <p className="text-gray-600 text-sm mt-1">
                   🕒 Sesión expira en: {timeLeft.hours}h {timeLeft.minutes}m
                 </p>
               )}
@@ -152,7 +152,7 @@ const BingoAdmin = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowPasswordManager(true)}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                className="bg-orange-200 hover:bg-orange-300 text-orange-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
                 title="Gestionar contraseñas de gestores"
               >
                 <FontAwesomeIcon icon={faCog} className="mr-2" />
@@ -160,21 +160,21 @@ const BingoAdmin = () => {
               </button>
               <Link 
                 to="/bingo" 
-                className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition duration-300 inline-flex items-center"
+                className="bg-blue-200 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-300 inline-flex items-center"
               >
                 <FontAwesomeIcon icon={faHome} className="mr-2" />
                 Juego Principal
               </Link>
               <button
                 onClick={() => setShowForm(true)}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                className="bg-green-200 hover:bg-green-300 text-green-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-2" />
                 Nueva Asignación
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
                 title="Cerrar sesión"
               >
                 <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
@@ -190,8 +190,8 @@ const BingoAdmin = () => {
                 onClick={() => setViewMode('games')}
                 className={`px-4 py-2 rounded-lg transition duration-300 ${
                   viewMode === 'games' 
-                    ? 'bg-white text-purple-600 font-semibold' 
-                    : 'bg-white/20 text-white hover:bg-white/30'
+                    ? 'bg-purple-200 text-purple-800 font-semibold' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <FontAwesomeIcon icon={faGamepad} className="mr-2" />
@@ -201,8 +201,8 @@ const BingoAdmin = () => {
                 onClick={() => setViewMode('assignments')}
                 className={`px-4 py-2 rounded-lg transition duration-300 ${
                   viewMode === 'assignments' 
-                    ? 'bg-white text-purple-600 font-semibold' 
-                    : 'bg-white/20 text-white hover:bg-white/30'
+                    ? 'bg-purple-200 text-purple-800 font-semibold' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <FontAwesomeIcon icon={faChartBar} className="mr-2" />
@@ -212,8 +212,8 @@ const BingoAdmin = () => {
                 onClick={() => setViewMode('search')}
                 className={`px-4 py-2 rounded-lg transition duration-300 ${
                   viewMode === 'search' 
-                    ? 'bg-white text-purple-600 font-semibold' 
-                    : 'bg-white/20 text-white hover:bg-white/30'
+                    ? 'bg-purple-200 text-purple-800 font-semibold' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <FontAwesomeIcon icon={faSearch} className="mr-2" />
@@ -227,7 +227,7 @@ const BingoAdmin = () => {
                 <select
                   value={currentRaffle}
                   onChange={(e) => setCurrentRaffle(Number(e.target.value))}
-                  className="px-3 py-2 bg-white rounded-lg text-gray-700 border-0 focus:ring-2 focus:ring-purple-300"
+                  className="px-3 py-2 bg-white rounded-lg text-gray-700 border-0 focus:ring-2 focus:ring-purple-200"
                 >
                   {Array.from({ length: 10 }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
@@ -241,7 +241,7 @@ const BingoAdmin = () => {
             {viewMode === 'games' && (
               <button
                 onClick={() => setShowGameForm(true)}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                className="bg-green-200 hover:bg-green-300 text-green-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-2" />
                 Crear Juego
@@ -268,7 +268,7 @@ const BingoAdmin = () => {
               <select
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value)}
-                className="px-4 py-3 bg-white rounded-lg text-gray-700 border-0 focus:ring-2 focus:ring-purple-300"
+                className="px-4 py-3 bg-white rounded-lg text-gray-700 border-0 focus:ring-2 focus:ring-purple-200"
               >
                 <option value="all">Todos los campos</option>
                 <option value="cardNumber">Número de cartón</option>
@@ -298,9 +298,9 @@ const BingoAdmin = () => {
                     </h2>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <span>ID: {currentGame.id}</span>
-                      <span className={`px-3 py-1 rounded-full text-white ${
-                        currentGame.status === 'active' ? 'bg-green-500' :
-                        currentGame.status === 'waiting' ? 'bg-yellow-500' : 'bg-gray-500'
+                      <span className={`px-3 py-1 rounded-full ${
+                        currentGame.status === 'active' ? 'bg-green-200 text-green-800' :
+                        currentGame.status === 'waiting' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'
                       }`}>
                         {currentGame.status === 'active' ? 'Activo' :
                          currentGame.status === 'waiting' ? 'En Espera' : 'Finalizado'}
@@ -312,7 +312,7 @@ const BingoAdmin = () => {
                     {currentGame.status === 'waiting' && (
                       <button
                         onClick={() => handleStartGame(currentGame.id)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                        className="bg-green-200 hover:bg-green-300 text-green-800 px-4 py-2 rounded-lg transition-colors"
                       >
                         <FontAwesomeIcon icon={faPlay} className="mr-2" />
                         Iniciar
@@ -321,7 +321,7 @@ const BingoAdmin = () => {
                     {currentGame.status === 'active' && (
                       <button
                         onClick={() => handleFinishGame(currentGame.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                        className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition-colors"
                       >
                         <FontAwesomeIcon icon={faStop} className="mr-2" />
                         Finalizar
@@ -397,9 +397,9 @@ const BingoAdmin = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              game.status === 'active' ? 'bg-green-100 text-green-800' :
-                              game.status === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
+                              game.status === 'active' ? 'bg-green-200 text-green-800' :
+                              game.status === 'waiting' ? 'bg-yellow-200 text-yellow-800' :
+                              'bg-gray-200 text-gray-800'
                             }`}>
                               {game.status === 'active' ? 'Activo' :
                                game.status === 'waiting' ? 'En Espera' :
@@ -415,7 +415,7 @@ const BingoAdmin = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex flex-wrap gap-1">
                               {game.settings?.winPatterns?.slice(0, 3).map(pattern => (
-                                <span key={pattern} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                                <span key={pattern} className="inline-flex px-2 py-1 text-xs bg-blue-200 text-blue-800 rounded">
                                   {pattern === 'line' ? 'Línea' :
                                    pattern === 'horizontalLine1' ? 'H1' :
                                    pattern === 'horizontalLine2' ? 'H2' :
@@ -437,7 +437,7 @@ const BingoAdmin = () => {
                                 </span>
                               ))}
                               {game.settings?.customPattern && (
-                                <span className="inline-flex px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">
+                                <span className="inline-flex px-2 py-1 text-xs bg-purple-200 text-purple-800 rounded">
                                   Personalizado
                                 </span>
                               )}
@@ -502,7 +502,7 @@ const BingoAdmin = () => {
                   </p>
                   <button
                     onClick={() => setShowGameForm(true)}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors"
+                    className="bg-green-200 hover:bg-green-300 text-green-800 px-6 py-3 rounded-lg transition-colors"
                   >
                     <FontAwesomeIcon icon={faPlus} className="mr-2" />
                     Crear Primer Juego
@@ -580,13 +580,13 @@ const BingoAdmin = () => {
                           <div className="flex flex-col gap-1">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               assignment.paid 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-green-200 text-green-800' 
+                                : 'bg-yellow-200 text-yellow-800'
                             }`}>
                               {assignment.paid ? 'Pagado' : 'Pendiente'}
                             </span>
                             {assignment.winner && (
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gold-100 text-gold-800">
+                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">
                                 <FontAwesomeIcon icon={faTrophy} className="mr-1" />
                                 Ganador
                               </span>

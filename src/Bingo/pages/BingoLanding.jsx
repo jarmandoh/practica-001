@@ -32,14 +32,14 @@ const BingoLanding = () => {
 
   // FIN IA
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-600 to-blue-600">
+    <div className="min-h-screen bg-linear-to-br from-purple-200 via-pink-100 to-blue-200">
       {/* Header */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <Link 
               to="/" 
-              className="text-white hover:text-purple-200 transition-colors inline-flex items-center"
+              className="text-gray-700 hover:text-gray-900 transition-colors inline-flex items-center font-medium"
             >
               <FontAwesomeIcon icon={faHome} className="mr-2" />
               ← Volver al Portfolio
@@ -50,30 +50,30 @@ const BingoLanding = () => {
           <div className="text-center">
             <div className="mb-8">
               <div className="text-8xl mb-4">🎱</div>
-              <h1 className="text-6xl font-bold text-white mb-4 drop-shadow-lg">
+              <h1 className="text-6xl font-bold text-gray-800 mb-4 drop-shadow-lg">
                 ¡¡¡ BINGO !!!
               </h1>
-              <p className="text-2xl text-purple-100 font-medium max-w-2xl mx-auto">
+              <p className="text-2xl text-gray-700 font-medium max-w-2xl mx-auto">
                 Plataforma completa de Bingo en línea con gestión profesional y experiencia de juego inmersiva
               </p>
             </div>
 
             {/* Estadísticas */}
             <div className="grid md:grid-cols-3 gap-8 mb-16 max-w-4xl mx-auto">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                <FontAwesomeIcon icon={faDice} className="text-4xl text-yellow-400 mb-3" />
-                <div className="text-3xl font-bold text-white">1,200</div>
-                <div className="text-purple-200">Cartones Únicos</div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+                <FontAwesomeIcon icon={faDice} className="text-4xl text-yellow-600 mb-3" />
+                <div className="text-3xl font-bold text-gray-800">1,200</div>
+                <div className="text-gray-600">Cartones Únicos</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                <FontAwesomeIcon icon={faUsers} className="text-4xl text-green-400 mb-3" />
-                <div className="text-3xl font-bold text-white">∞</div>
-                <div className="text-purple-200">Jugadores Simultáneos</div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+                <FontAwesomeIcon icon={faUsers} className="text-4xl text-green-600 mb-3" />
+                <div className="text-3xl font-bold text-gray-800">∞</div>
+                <div className="text-gray-600">Jugadores Simultáneos</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                <FontAwesomeIcon icon={faTrophy} className="text-4xl text-orange-400 mb-3" />
-                <div className="text-3xl font-bold text-white">Real Time</div>
-                <div className="text-purple-200">Detección de Ganadores</div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+                <FontAwesomeIcon icon={faTrophy} className="text-4xl text-orange-600 mb-3" />
+                <div className="text-3xl font-bold text-gray-800">Real Time</div>
+                <div className="text-gray-600">Detección de Ganadores</div>
               </div>
             </div>
           </div>
@@ -83,10 +83,10 @@ const BingoLanding = () => {
       {/* Login Options */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 pb-16">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-gray-800 mb-4">
             Elige tu Rol
           </h2>
-          <p className="text-xl text-purple-100">
+          <p className="text-xl text-gray-700">
             Accede según tu función: administrador, gestor de sorteo o jugador
           </p>
         </div>
@@ -102,17 +102,17 @@ const BingoLanding = () => {
 
         {/* Quick Access */}
         <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold text-white mb-6">Acceso Rápido</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-6">Acceso Rápido</h3>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               to="/bingo/cartones"
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors"
+              className="bg-white/60 hover:bg-white/80 text-gray-700 px-6 py-3 rounded-lg transition-colors shadow-md"
             >
               Ver Cartones Disponibles
             </Link>
             <Link
               to="/bingo/carton/1"
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors"
+              className="bg-white/60 hover:bg-white/80 text-gray-700 px-6 py-3 rounded-lg transition-colors shadow-md"
             >
               Explorar Cartón de Ejemplo
             </Link>

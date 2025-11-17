@@ -139,7 +139,7 @@ const BingoPlayer = () => {
 
   return (
     <SocketProvider>
-      <div className="min-h-screen bg-linear-to-br from-green-600 to-blue-600 p-4">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-teal-100 to-blue-200 p-4">
       {/* Number Display sticky */}
       <div className="fixed top-4 left-4 z-50">
         <NumberDisplay 
@@ -150,13 +150,13 @@ const BingoPlayer = () => {
 
       <div className="max-w-6xl mx-auto ml-72">
         {/* Header */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
+        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 mb-6 shadow-lg">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-gray-700 mb-2">
                 {currentGame?.name || 'Bingo Game'}
               </h1>
-              <div className="flex items-center space-x-4 text-green-100">
+              <div className="flex items-center space-x-4 text-gray-600">
                 <span className="flex items-center">
                   <FontAwesomeIcon icon={faUser} className="mr-2" />
                   {player?.name}
@@ -167,10 +167,10 @@ const BingoPlayer = () => {
                 </span>
                 <span className={`flex items-center px-3 py-1 rounded-full text-sm ${
                   currentGame?.status === 'active' 
-                    ? 'bg-green-500 text-white' 
+                    ? 'bg-green-200 text-green-800' 
                     : currentGame?.status === 'waiting'
-                    ? 'bg-yellow-500 text-black'
-                    : 'bg-gray-500 text-white'
+                    ? 'bg-yellow-200 text-yellow-800'
+                    : 'bg-gray-200 text-gray-800'
                 }`}>
                   {currentGame?.status === 'active' && '🟢 En Juego'}
                   {currentGame?.status === 'waiting' && '⏳ Esperando'}
@@ -181,14 +181,14 @@ const BingoPlayer = () => {
             <div className="flex gap-3">
               <Link 
                 to="/bingo" 
-                className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition duration-300 inline-flex items-center"
+                className="bg-blue-200 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-300 inline-flex items-center"
               >
                 <FontAwesomeIcon icon={faHome} className="mr-2" />
                 Inicio
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
               >
                 <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
                 Salir
@@ -200,8 +200,8 @@ const BingoPlayer = () => {
         {/* Game Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Player Card */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-700 mb-6 text-center">
               Tu Cartón de Bingo
             </h2>
             
@@ -219,14 +219,14 @@ const BingoPlayer = () => {
           </div>
 
           {/* Game Info */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">Información del Juego</h2>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-700 mb-6">Información del Juego</h2>
             
             <div className="space-y-4">
               {/* Game Status */}
-              <div className="bg-white/10 rounded-lg p-4">
-                <h3 className="font-semibold text-white mb-2">Estado del Juego</h3>
-                <p className="text-green-100">
+              <div className="bg-white/40 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-700 mb-2">Estado del Juego</h3>
+                <p className="text-gray-600">
                   {currentGame?.status === 'waiting' && 'Esperando que inicie el juego...'}
                   {currentGame?.status === 'active' && 'Juego en progreso'}
                   {currentGame?.status === 'finished' && 'Juego finalizado'}
@@ -234,16 +234,16 @@ const BingoPlayer = () => {
               </div>
 
               {/* Game Progress */}
-              <div className="bg-white/10 rounded-lg p-4">
-                <h3 className="font-semibold text-white mb-2">Progreso</h3>
+              <div className="bg-white/40 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-700 mb-2">Progreso</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-green-100">
+                  <div className="flex justify-between text-gray-600">
                     <span>Números cantados:</span>
                     <span>{currentGame?.calledNumbers?.length || 0}/75</span>
                   </div>
-                  <div className="w-full bg-white/20 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-green-400 h-2 rounded-full transition-all duration-500"
+                      className="bg-green-300 h-2 rounded-full transition-all duration-500"
                       style={{ 
                         width: `${((currentGame?.calledNumbers?.length || 0) / 75) * 100}%` 
                       }}
@@ -254,14 +254,14 @@ const BingoPlayer = () => {
 
               {/* Winners */}
               {currentGame?.winners && currentGame.winners.length > 0 && (
-                <div className="bg-yellow-500/20 rounded-lg p-4">
-                  <h3 className="font-semibold text-yellow-100 mb-2 flex items-center">
+                <div className="bg-yellow-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-yellow-800 mb-2 flex items-center">
                     <FontAwesomeIcon icon={faTrophy} className="mr-2" />
                     Ganadores
                   </h3>
                   <div className="space-y-1">
                     {currentGame.winners.map((winner, index) => (
-                      <div key={index} className="text-yellow-100">
+                      <div key={index} className="text-yellow-800">
                         🎉 {winner.name || `Cartón #${winner.cardNumber}`}
                       </div>
                     ))}
@@ -270,9 +270,9 @@ const BingoPlayer = () => {
               )}
 
               {/* Instructions */}
-              <div className="bg-white/10 rounded-lg p-4">
-                <h3 className="font-semibold text-white mb-2">Instrucciones</h3>
-                <ul className="text-green-100 text-sm space-y-1">
+              <div className="bg-white/40 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-700 mb-2">Instrucciones</h3>
+                <ul className="text-gray-600 text-sm space-y-1">
                   <li>• Los números se marcan automáticamente</li>
                   <li>• Recibirás notificación si haces BINGO</li>
                   <li>• El juego actualiza en tiempo real</li>

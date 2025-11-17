@@ -11,17 +11,17 @@ const NumberDisplay = ({ currentNumber, calledNumbers }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-xl shadow-black p-4 text-center max-w-80">
+    <div className="bg-white rounded-xl shadow-xl p-4 text-center max-w-80">
       <h2 className="text-lg font-bold text-gray-800 mb-3">Número Actual</h2>
       
       <div className="mb-4">
         {currentNumber ? (
           <div className="space-y-3">
-            <div className="text-4xl font-bold text-purple-600">
+            <div className="text-4xl font-bold text-purple-700">
               {getColumnLetter(currentNumber)}-{currentNumber}
             </div>
-            <div className="w-32 h-32 bg-yellow-400 rounded-full flex items-center justify-center mx-auto shadow-lg">
-              <span className="text-4xl font-bold text-black">
+            <div className="w-32 h-32 bg-yellow-200 rounded-full flex items-center justify-center mx-auto shadow-lg border-4 border-yellow-300">
+              <span className="text-4xl font-bold text-gray-800">
                 {currentNumber}
               </span>
             </div>
@@ -40,7 +40,7 @@ const NumberDisplay = ({ currentNumber, calledNumbers }) => {
         </p>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div
-            className="bg-purple-600 h-1.5 rounded-full transition-all duration-500"
+            className="bg-purple-300 h-1.5 rounded-full transition-all duration-500"
             style={{ width: `${(calledNumbers.length / 75) * 100}%` }}
           ></div>
         </div>

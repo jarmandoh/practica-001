@@ -64,7 +64,7 @@ const BingoCard = ({ card, calledNumbers: initialCalledNumbers }) => {
         {columns.map((letter) => (
           <div
             key={letter}
-            className="bg-purple-600 text-white text-2xl font-bold py-3 text-center rounded-lg"
+            className="bg-purple-300 text-purple-900 text-2xl font-bold py-3 text-center rounded-lg"
           >
             {letter}
           </div>
@@ -80,10 +80,10 @@ const BingoCard = ({ card, calledNumbers: initialCalledNumbers }) => {
               onClick={() => toggleNumber(num)}
               className={`aspect-square flex items-center justify-center text-xl font-semibold rounded-lg border-2 transition-all duration-300 cursor-pointer ${
                 num === 'FREE'
-                  ? 'bg-gold-400 text-black border-yellow-500'
+                  ? 'bg-yellow-200 text-yellow-900 border-yellow-400'
                   : checkNumber(num)
-                  ? 'bg-green-500 text-white border-green-600 transform scale-105 shadow-lg'
-                  : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200 hover:border-gray-400'
+                  ? 'bg-green-300 text-green-900 border-green-400 transform scale-105 shadow-lg'
+                  : 'bg-gray-50 text-gray-800 border-gray-300 hover:bg-gray-100 hover:border-gray-400'
               }`}
             >
               {num === 'FREE' ? '★' : num}
