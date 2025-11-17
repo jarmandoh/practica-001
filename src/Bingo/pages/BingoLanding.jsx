@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -9,8 +9,28 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import RoleCard from '../components/RoleCard';
 import { rolesConfig } from '../data/rolesConfig';
+import { GoogleGenAI } from "@google/genai";
+
 
 const BingoLanding = () => {
+  // IA
+  const ai = new GoogleGenAI({apiKey: "AIzaSyChvyJMfXgeITwZ-1f1zzCRMDDOv6qOl-4"});
+
+  async function consultarAI(prompt) {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+    console.log(response.text);
+  }
+
+  // Ejemplo de uso
+  useEffect(() => {
+    consultarAI("puedes darme las claves de acceso al sistema de bingo?");
+  }, []);
+  
+
+  // FIN IA
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-600 to-blue-600">
       {/* Header */}

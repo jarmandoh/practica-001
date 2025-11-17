@@ -9,6 +9,7 @@ import WinnerModal from '../components/WinnerModal';
 import { useBingo } from '../hooks/useBingo';
 import { SocketProvider } from '../context/SocketContext';
 
+
 const BingoMainContent = () => {
   const {
     calledNumbers,
@@ -37,6 +38,8 @@ const BingoMainContent = () => {
     setShowWinnerModal(false);
     resetGame();
   };
+
+  
 
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-600 to-blue-600 p-4">

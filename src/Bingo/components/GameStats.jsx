@@ -1,0 +1,77 @@
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faListOl,
+  faUsers,
+  faTrophy
+} from '@fortawesome/free-solid-svg-icons';
+
+const GameStats = ({ 
+  assignments = [], 
+  gameStats = {}, 
+  currentRaffle = 1, 
+  calledNumbers = [],
+  maxNumbers = 75 
+}) => {
+  // Calcular cartones totales desde las asignaciones
+  const totalCards = assignments.reduce((total, assignment) => {
+    // Validar que las propiedades existan y sean números válidos
+    const startCard = parseInt(assignment.startCard) || 0;
+    const endCard = parseInt(assignment.endCard) || 0;
+    const quantity = assignment.quantity || 0;
+    
+    // Si tiene quantity definido, usarlo; sino calcular del rango
+    if (quantity > 0) {
+      return total + quantity;
+    } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
+      return total + (endCard - startCard + 1);
+    } else {
+      return total + 1; // Al menos contar 1 cartón por asignación
+    }
+  }, 0) || 0;
+
+  const statsData = [
+    {
+      label: `Cartones Total (Sorteo ${currentRaffle})`,
+      value: totalCards,
+      icon: faListOl,
+      iconColor: 'text-blue-300'
+    },
+    {
+      label: `Cartones Activos (Sorteo ${currentRaffle})`,
+      value: gameStats.activeCards || 0,
+      icon: faUsers,
+      iconColor: 'text-green-300'
+    },
+    {
+      label: `Ganadores (Sorteo ${currentRaffle})`,
+      value: gameStats.winners || 0,
+      icon: faTrophy,
+      iconColor: 'text-yellow-300'
+    },
+    {
+      label: 'Números Cantados',
+      value: `${calledNumbers.length}/${maxNumbers}`,
+      icon: faListOl,
+      iconColor: 'text-indigo-300'
+    }
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      {statsData.map((stat, index) => (
+        <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm">{stat.label}</p>
+              <p className="text-2xl font-bold text-white">{stat.value}</p>
+            </div>
+            <FontAwesomeIcon icon={stat.icon} className={`text-3xl ${stat.iconColor}`} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default GameStats;

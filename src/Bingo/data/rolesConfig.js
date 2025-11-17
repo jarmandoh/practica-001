@@ -48,11 +48,11 @@ export const rolesConfig = [
     buttonIcon: faListOl,
     route: '/bingo/gestor',
     colors: {
-      gradient: 'from-orange-600 to-red-600',
-      subtitle: 'text-orange-100',
-      dot: 'bg-orange-500',
-      button: 'bg-orange-600',
-      buttonHover: 'bg-orange-700'
+      gradient: 'from-blue-600 to-indigo-700',
+      subtitle: 'text-blue-100',
+      dot: 'bg-blue-500',
+      button: 'bg-blue-600',
+      buttonHover: 'bg-blue-700'
     },
     footerText: 'Contraseña generada por el administrador'
   },

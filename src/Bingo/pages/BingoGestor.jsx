@@ -11,7 +11,6 @@ import {
   faPause,
   faClock,
   faUsers,
-  faListOl,
   faCheckCircle,
   faPlus,
   faEdit,
@@ -28,6 +27,8 @@ import NumberDisplay from '../components/NumberDisplay';
 import BingoControls from '../components/BingoControls';
 import AssignmentForm from '../components/AssignmentForm';
 import AssignmentStats from '../components/AssignmentStats';
+import GameStats from '../components/GameStats';
+
 
 const BingoGestor = () => {
   const { gestor, logoutGestor, getTimeUntilExpiry } = useGestorAuth();
@@ -272,7 +273,7 @@ const BingoGestor = () => {
   if (!currentGame) {
     return (
       <SocketProvider>
-        <div className="min-h-screen bg-linear-to-br from-orange-600 to-red-600 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-md">
             <FontAwesomeIcon icon={faGamepad} className="text-6xl text-red-500 mb-4" />
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Juego No Disponible</h2>
@@ -293,7 +294,7 @@ const BingoGestor = () => {
 
   return (
     <SocketProvider>
-      <div className="min-h-screen bg-linear-to-br from-orange-600 to-red-600 p-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-600 to-indigo-700 p-4">
         {/* Number Display sticky */}
         <div className="fixed top-4 left-4 z-50">
           <NumberDisplay 
@@ -310,7 +311,7 @@ const BingoGestor = () => {
                 <h1 className="text-3xl font-bold text-white mb-2">
                   Gestor de Sorteos - {currentGame.name}
                 </h1>
-                <div className="flex items-center space-x-4 text-orange-100">
+                <div className="flex items-center space-x-4 text-blue-100">
                   <span className="flex items-center">
                     <FontAwesomeIcon icon={faUser} className="mr-2" />
                     {gestor.name}
@@ -354,60 +355,13 @@ const BingoGestor = () => {
           </div>
 
           {/* Estadísticas del Juego */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100 text-sm">Cartones Total (Sorteo {currentRaffle})</p>
-                  <p className="text-2xl font-bold text-white">
-                    {assignments.reduce((total, assignment) => {
-                      // Validar que las propiedades existan y sean números válidos
-                      const startCard = parseInt(assignment.startCard) || 0;
-                      const endCard = parseInt(assignment.endCard) || 0;
-                      const quantity = assignment.quantity || 0;
-                      
-                      // Si tiene quantity definido, usarlo; sino calcular del rango
-                      if (quantity > 0) {
-                        return total + quantity;
-                      } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
-                        return total + (endCard - startCard + 1);
-                      } else {
-                        return total + 1; // Al menos contar 1 cartón por asignación
-                      }
-                    }, 0) || 0}
-                  </p>
-                </div>
-                <FontAwesomeIcon icon={faListOl} className="text-3xl text-orange-300" />
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100 text-sm">Cartones Activos (Sorteo {currentRaffle})</p>
-                  <p className="text-2xl font-bold text-white">{gameStats.activeCards}</p>
-                </div>
-                <FontAwesomeIcon icon={faUsers} className="text-3xl text-green-300" />
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100 text-sm">Ganadores (Sorteo {currentRaffle})</p>
-                  <p className="text-2xl font-bold text-white">{gameStats.winners}</p>
-                </div>
-                <FontAwesomeIcon icon={faTrophy} className="text-3xl text-yellow-300" />
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100 text-sm">Números Cantados</p>
-                  <p className="text-2xl font-bold text-white">{currentGame.calledNumbers?.length || 0}/75</p>
-                </div>
-                <FontAwesomeIcon icon={faListOl} className="text-3xl text-blue-300" />
-              </div>
-            </div>
-          </div>
+          <GameStats 
+            assignments={assignments}
+            gameStats={gameStats}
+            currentRaffle={currentRaffle}
+            calledNumbers={currentGame.calledNumbers || []}
+            maxNumbers={75}
+          />
 
           {/* Controles de vista */}
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
@@ -417,7 +371,7 @@ const BingoGestor = () => {
                   onClick={() => setViewMode('game')}
                   className={`px-4 py-2 rounded-lg transition duration-300 ${
                     viewMode === 'game' 
-                      ? 'bg-white text-orange-600 font-semibold' 
+                      ? 'bg-white text-blue-600 font-semibold' 
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
@@ -430,7 +384,7 @@ const BingoGestor = () => {
                   }}
                   className={`px-4 py-2 rounded-lg transition duration-300 ${
                     viewMode === 'assignments' 
-                      ? 'bg-white text-orange-600 font-semibold' 
+                      ? 'bg-white text-blue-600 font-semibold' 
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
@@ -441,7 +395,7 @@ const BingoGestor = () => {
                   onClick={() => setViewMode('search')}
                   className={`px-4 py-2 rounded-lg transition duration-300 ${
                     viewMode === 'search' 
-                      ? 'bg-white text-orange-600 font-semibold' 
+                      ? 'bg-white text-blue-600 font-semibold' 
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
@@ -556,7 +510,7 @@ const BingoGestor = () => {
                     onClick={() => setShowParticipantNames(!showParticipantNames)}
                     className={`px-4 py-2 rounded-lg transition-colors text-sm ${
                       showParticipantNames 
-                        ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                     }`}
                   >
@@ -731,7 +685,7 @@ const BingoGestor = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <button
                                 onClick={() => handleEdit(assignment)}
-                                className="text-orange-600 hover:text-orange-900 mr-3"
+                                className="text-blue-600 hover:text-blue-900 mr-3"
                               >
                                 <FontAwesomeIcon icon={faEdit} />
                               </button>
