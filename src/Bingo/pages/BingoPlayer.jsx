@@ -12,18 +12,23 @@ import {
 import { usePlayerAuth } from '../hooks/usePlayerAuth';
 import { useGameManager } from '../hooks/useGameManager';
 import { useBingoAdmin } from '../hooks/useBingoAdmin';
+import { useSocket } from '../hooks/useSocket';
 import NumberDisplay from '../components/NumberDisplay';
 import BingoCard from '../components/BingoCard';
 import { SocketProvider } from '../context/SocketContext';
 
-const BingoPlayer = () => {
+// Componente interno que maneja el socket
+const BingoPlayerContent = () => {
   const { player, logoutPlayer, updatePlayerCard } = usePlayerAuth();
   const { getGameById } = useGameManager();
   const { getAssignmentsByRaffle } = useBingoAdmin();
+  const { socket } = useSocket();
   
   const [currentGame, setCurrentGame] = useState(null);
   const [playerCard, setPlayerCard] = useState(null);
   const [gameNotFound, setGameNotFound] = useState(false);
+  const [currentNumber, setCurrentNumber] = useState(null);
+  const [calledNumbers, setCalledNumbers] = useState([]);
 
   const assignRandomCard = useCallback(() => {
     // Buscar un cartón disponible para el sorteo actual
@@ -103,6 +108,30 @@ const BingoPlayer = () => {
     }
   }, [player?.cardNumber, playerCard, generatePlayerCardFromNumber]);
 
+  // useEffect para escuchar eventos del socket
+  useEffect(() => {
+    if (socket) {
+      socket.on('numberDrawn', (data) => {
+        console.log('Número sorteado recibido:', data);
+        setCurrentNumber(data.number);
+        setCalledNumbers(data.calledNumbers || []);
+        
+        // También actualizar el juego actual con los nuevos datos
+        if (currentGame) {
+          setCurrentGame({
+            ...currentGame,
+            currentNumber: data.number,
+            calledNumbers: data.calledNumbers || []
+          });
+        }
+      });
+
+      return () => {
+        socket.off('numberDrawn');
+      };
+    }
+  }, [socket, currentGame]);
+
   const handleLogout = () => {
     if (window.confirm('¿Estás seguro de que quieres salir del juego?')) {
       logoutPlayer();
@@ -138,13 +167,12 @@ const BingoPlayer = () => {
   }
 
   return (
-    <SocketProvider>
-      <div className="min-h-screen bg-linear-to-br from-green-200 via-teal-100 to-blue-200 p-4">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-teal-100 to-blue-200 p-4">
       {/* Number Display sticky */}
       <div className="fixed top-4 left-4 z-50">
         <NumberDisplay 
-          currentNumber={currentGame?.currentNumber}
-          calledNumbers={currentGame?.calledNumbers || []}
+          currentNumber={currentNumber || currentGame?.currentNumber}
+          calledNumbers={calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])}
         />
       </div>
 
@@ -201,14 +229,10 @@ const BingoPlayer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Player Card */}
           <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-700 mb-6 text-center">
-              Tu Cartón de Bingo
-            </h2>
-            
             {playerCard ? (
               <BingoCard 
                 card={playerCard}
-                calledNumbers={currentGame?.calledNumbers || []}
+                calledNumbers={calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])}
               />
             ) : (
               <div className="bg-white rounded-xl p-8 text-center">
@@ -239,13 +263,13 @@ const BingoPlayer = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-gray-600">
                     <span>Números cantados:</span>
-                    <span>{currentGame?.calledNumbers?.length || 0}/75</span>
+                    <span>{(calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])).length}/75</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-green-300 h-2 rounded-full transition-all duration-500"
                       style={{ 
-                        width: `${((currentGame?.calledNumbers?.length || 0) / 75) * 100}%` 
+                        width: `${(((calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])).length) / 75) * 100}%` 
                       }}
                     ></div>
                   </div>
@@ -284,6 +308,14 @@ const BingoPlayer = () => {
         </div>
       </div>
       </div>
+  );
+};
+
+// Componente wrapper que provee el SocketProvider
+const BingoPlayer = () => {
+  return (
+    <SocketProvider>
+      <BingoPlayerContent />
     </SocketProvider>
   );
 };
