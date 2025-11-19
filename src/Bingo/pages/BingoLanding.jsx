@@ -13,6 +13,10 @@ import { GoogleGenAI } from "@google/genai";
 
 
 const BingoLanding = () => {
+  useEffect(() => {
+    document.title = 'Bingo | Selecciona tu Rol';
+  }, []);
+
   // IA
   const ai = new GoogleGenAI({apiKey: "AIzaSyChvyJMfXgeITwZ-1f1zzCRMDDOv6qOl-4"});
 
@@ -26,7 +30,7 @@ const BingoLanding = () => {
 
   // Ejemplo de uso
   useEffect(() => {
-    consultarAI("puedes darme las claves de acceso al sistema de bingo?");
+    consultarAI("puedes darme la hora?");
   }, []);
   
 

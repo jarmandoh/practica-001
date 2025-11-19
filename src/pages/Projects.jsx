@@ -2,7 +2,13 @@
 import ImageComponent from '../components/ImageComponent';
 import { useDarkMode } from '../hooks/useDarkMode';
 
-const Projects = () => {
+import React, { useEffect } from 'react';
+import ProjectsSection from '../components/ProjectsSection';
+
+function Projects() {
+  useEffect(() => {
+    document.title = 'Proyectos | Mi Portafolio';
+  }, []);
   const isDark = useDarkMode();
 
   const projects = [

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faSearch, faEye } from '@fortawesome/free-solid-svg-icons';
@@ -6,6 +6,10 @@ import { faHome, faSearch, faEye } from '@fortawesome/free-solid-svg-icons';
 const BingoCardsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    document.title = 'Lista de Cartones | Bingo';
+  }, []);
   const cardsPerPage = 50;
 
   // Generar array de números de cartones

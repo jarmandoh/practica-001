@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { usePlayerAuth } from '../hooks/usePlayerAuth';
 import PlayerLogin from '../components/PlayerLogin';
 import BingoPlayer from './BingoPlayer';
 
 const ProtectedBingoPlayer = () => {
   const { isAuthenticated, isLoading, loginPlayer } = usePlayerAuth();
+
+  useEffect(() => {
+    document.title = isAuthenticated ? 'Jugador | Bingo Game' : 'Login Jugador | Bingo';
+  }, [isAuthenticated]);
 
   // Mostrar loading mientras se verifica la autenticación
   if (isLoading) {

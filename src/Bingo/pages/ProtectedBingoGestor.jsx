@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGestorAuth } from '../hooks/useGestorAuth';
 import GestorLogin from '../components/GestorLogin';
 import BingoGestor from './BingoGestor';
 
 const ProtectedBingoGestor = () => {
   const { isAuthenticated, loading } = useGestorAuth();
+
+  useEffect(() => {
+    document.title = isAuthenticated ? 'Gestor | Bingo Game' : 'Login Gestor | Bingo';
+  }, [isAuthenticated]);
 
   if (loading) {
     return (

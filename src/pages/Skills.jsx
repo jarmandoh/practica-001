@@ -1,6 +1,12 @@
 import { useDarkMode } from '../hooks/useDarkMode';
 
-const Skills = () => {
+import React, { useEffect } from 'react';
+import SkillsSection from '../components/SkillsSection';
+
+function Skills() {
+  useEffect(() => {
+    document.title = 'Habilidades | Mi Portafolio';
+  }, []);
   const isDark = useDarkMode();
 
   const skills = {

@@ -54,6 +54,10 @@ const BingoGestor = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showParticipantNames, setShowParticipantNames] = useState(false);
 
+  useEffect(() => {
+    document.title = 'Gestor | Bingo Game';
+  }, []);
+
   // El sorteo actual se obtiene del juego actual del gestor
   const currentRaffle = currentGame?.currentRaffle || 1;
 
@@ -294,7 +298,7 @@ const BingoGestor = () => {
 
   return (
     <SocketProvider>
-      <div className="min-h-screen bg-gradient-to-br from-blue-200 via-purple-100 to-pink-200 p-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-200 via-purple-100 to-pink-200 p-4">
         {/* Number Display sticky */}
         <div className="fixed top-4 left-4 z-50">
           <NumberDisplay 
@@ -685,13 +689,15 @@ const BingoGestor = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <button
                                 onClick={() => handleEdit(assignment)}
-                                className="text-blue-600 hover:text-blue-800 mr-3"
+                                className="text-blue-600 hover:text-blue-800 mr-3 transition-colors cursor-pointer"
+                                title="Editar asignación"
                               >
                                 <FontAwesomeIcon icon={faEdit} />
                               </button>
                               <button
                                 onClick={() => handleDelete(assignment.id)}
-                                className="text-red-600 hover:text-red-800"
+                                className="text-red-600 hover:text-red-800 transition-colors cursor-pointer"
+                                title="Eliminar asignación"
                               >
                                 <FontAwesomeIcon icon={faTrash} />
                               </button>
@@ -753,13 +759,15 @@ const BingoGestor = () => {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleEdit(assignment)}
-                                className="text-blue-600 hover:text-blue-800"
+                                className="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+                                title="Editar asignación"
                               >
                                 <FontAwesomeIcon icon={faEdit} />
                               </button>
                               <button
                                 onClick={() => handleDelete(assignment.id)}
-                                className="text-red-600 hover:text-red-800"
+                                className="text-red-600 hover:text-red-800 transition-colors cursor-pointer"
+                                title="Eliminar asignación"
                               >
                                 <FontAwesomeIcon icon={faTrash} />
                               </button>
@@ -776,7 +784,7 @@ const BingoGestor = () => {
 
           {/* Formulario de Asignación */}
           {showForm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-30 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex justify-between items-center">

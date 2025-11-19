@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import AdminLogin from '../components/AdminLogin';
 import BingoAdmin from './BingoAdmin';
 
 const ProtectedBingoAdmin = () => {
   const { isAuthenticated, isLoading, login } = useAdminAuth();
+
+  useEffect(() => {
+    document.title = isAuthenticated ? 'Administrador | Bingo Game' : 'Login Administrador | Bingo';
+  }, [isAuthenticated]);
 
   // Mostrar loading mientras se verifica la autenticación
   if (isLoading) {

@@ -15,7 +15,9 @@ import { useBingoAdmin } from '../hooks/useBingoAdmin';
 import { useSocket } from '../hooks/useSocket';
 import NumberDisplay from '../components/NumberDisplay';
 import BingoCard from '../components/BingoCard';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { SocketProvider } from '../context/SocketContext';
+import bingoCardsData from '../data/bingoCards.json';
 
 // Componente interno que maneja el socket
 const BingoPlayerContent = () => {
@@ -29,6 +31,11 @@ const BingoPlayerContent = () => {
   const [gameNotFound, setGameNotFound] = useState(false);
   const [currentNumber, setCurrentNumber] = useState(null);
   const [calledNumbers, setCalledNumbers] = useState([]);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  useEffect(() => {
+    document.title = 'Jugador | Bingo Game';
+  }, []);
 
   const assignRandomCard = useCallback(() => {
     // Buscar un cartón disponible para el sorteo actual
@@ -50,35 +57,16 @@ const BingoPlayerContent = () => {
   }, [getAssignmentsByRaffle, updatePlayerCard]);
 
   const generatePlayerCardFromNumber = useCallback((cardNumber) => {
-    // Generar cartón basado en el número (simulado)
-    const card = [];
-    const ranges = [
-      [1, 15],   // B
-      [16, 30],  // I
-      [31, 45],  // N
-      [46, 60],  // G
-      [61, 75]   // O
-    ];
-
-    // Usar el número del cartón como semilla para generar siempre el mismo cartón
-    const seed = cardNumber;
-    const random = (max) => Math.floor((seed * 9301 + 49297) % 233280 / 233280 * max);
-
-    for (let row = 0; row < 5; row++) {
-      const cardRow = [];
-      for (let col = 0; col < 5; col++) {
-        if (row === 2 && col === 2) {
-          cardRow.push('FREE');
-        } else {
-          const [min, max] = ranges[col];
-          const num = min + random(max - min + 1);
-          cardRow.push(num);
-        }
-      }
-      card.push(cardRow);
-    }
+    // Buscar el cartón en los datos pregenerados
+    const cardData = bingoCardsData.find(card => card.id === cardNumber);
     
-    setPlayerCard(card);
+    if (cardData) {
+      setPlayerCard(cardData.card);
+    } else {
+      // Si no se encuentra el cartón, mostrar error
+      console.error(`Cartón #${cardNumber} no encontrado en bingoCards.json`);
+      setPlayerCard(null);
+    }
   }, []);
 
   // useEffect para manejar cambios en el juego
@@ -133,9 +121,16 @@ const BingoPlayerContent = () => {
   }, [socket, currentGame]);
 
   const handleLogout = () => {
-    if (window.confirm('¿Estás seguro de que quieres salir del juego?')) {
-      logoutPlayer();
-    }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logoutPlayer();
+    setShowLogoutConfirm(false);
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   if (gameNotFound) {
@@ -168,6 +163,15 @@ const BingoPlayerContent = () => {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-200 via-teal-100 to-blue-200 p-4">
+      {/* Confirm Logout Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="¿Salir del juego?"
+        message="¿Estás seguro de que quieres salir del juego? Perderás tu progreso actual."
+        onConfirm={confirmLogout}
+        onCancel={cancelLogout}
+      />
+
       {/* Number Display sticky */}
       <div className="fixed top-4 left-4 z-50">
         <NumberDisplay 

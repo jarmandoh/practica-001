@@ -18,6 +18,12 @@ const BingoCardViewer = () => {
   }, []);
 
   useEffect(() => {
+    if (cardId) {
+      document.title = `Cartón #${cardId} | Bingo`;
+    }
+  }, [cardId]);
+
+  useEffect(() => {
     if (!loading && allCards.length > 0) {
       const cardNumber = parseInt(cardId);
       if (cardNumber >= 1 && cardNumber <= 1200) {

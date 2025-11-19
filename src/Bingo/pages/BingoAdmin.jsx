@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -23,8 +23,6 @@ import { useAdminAuth } from '../hooks/useAdminAuth';
 import { useGameManager } from '../hooks/useGameManager';
 import AssignmentForm from '../components/AssignmentForm';
 import AssignmentStats from '../components/AssignmentStats';
-import BingoControls from '../components/BingoControls';
-import NumberDisplay from '../components/NumberDisplay';
 import GestorPasswordManager from '../components/GestorPasswordManager';
 import GameCreationModal from '../components/GameCreationModal';
 import { SocketProvider } from '../context/SocketContext';
@@ -330,21 +328,13 @@ const BingoAdmin = () => {
                   </div>
                 </div>
 
-                {/* Controles de Bingo */}
+                {/* Información adicional */}
                 {currentGame.status === 'active' && (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <NumberDisplay 
-                        currentNumber={currentGame.currentNumber}
-                        calledNumbers={currentGame.calledNumbers || []}
-                      />
-                    </div>
-                    <div>
-                      <BingoControls 
-                        onCallNumber={(number) => addCalledNumber(currentGame.id, number)}
-                        calledNumbers={currentGame.calledNumbers || []}
-                      />
-                    </div>
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <FontAwesomeIcon icon={faGamepad} className="mr-2" />
+                      El sorteo de números está disponible en la sección del <strong>Gestor de Sorteos</strong>
+                    </p>
                   </div>
                 )}
               </div>
@@ -561,7 +551,8 @@ const BingoAdmin = () => {
                             </div>
                             <Link
                               to={`/bingo/carton/${assignment.cardNumber}`}
-                              className="ml-2 text-purple-600 hover:text-purple-800"
+                              className="ml-2 text-purple-600 hover:text-purple-800 transition-colors cursor-pointer"
+                              title="Ver cartón"
                             >
                               <FontAwesomeIcon icon={faEye} />
                             </Link>
@@ -600,27 +591,31 @@ const BingoAdmin = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(assignment)}
-                              className="text-indigo-600 hover:text-indigo-900"
+                              className="text-indigo-600 hover:text-indigo-900 transition-colors cursor-pointer"
+                              title="Editar asignación"
                             >
                               <FontAwesomeIcon icon={faEdit} />
                             </button>
                             <button
                               onClick={() => updateAssignment(assignment.id, { paid: !assignment.paid })}
-                              className={assignment.paid ? "text-yellow-600 hover:text-yellow-900" : "text-green-600 hover:text-green-900"}
+                              className={assignment.paid ? "text-yellow-600 hover:text-yellow-900 transition-colors cursor-pointer" : "text-green-600 hover:text-green-900 transition-colors cursor-pointer"}
+                              title={assignment.paid ? "Marcar como no pagado" : "Marcar como pagado"}
                             >
                               <FontAwesomeIcon icon={assignment.paid ? faTimes : faCheck} />
                             </button>
                             {!assignment.winner && (
                               <button
                                 onClick={() => markAsWinner(assignment.id)}
-                                className="text-yellow-600 hover:text-yellow-900"
+                                className="text-yellow-600 hover:text-yellow-900 transition-colors cursor-pointer"
+                                title="Marcar como ganador"
                               >
                                 <FontAwesomeIcon icon={faTrophy} />
                               </button>
                             )}
                             <button
                               onClick={() => handleDelete(assignment.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-900 transition-colors cursor-pointer"
+                              title="Eliminar asignación"
                             >
                               <FontAwesomeIcon icon={faTrash} />
                             </button>

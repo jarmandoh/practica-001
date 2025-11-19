@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode';
 
-const Contact = () => {
+import React, { useEffect } from 'react';
+import ContactSection from '../components/ContactSection';
+
+function Contact() {
+  useEffect(() => {
+    document.title = 'Contacto | Mi Portafolio';
+  }, []);
   const isDark = useDarkMode();
   const [formData, setFormData] = useState({
     name: '',
