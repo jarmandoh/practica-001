@@ -1,0 +1,302 @@
+/* Player Login Container */
+.player-login-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, rgb(22, 163, 74), rgb(37, 99, 235));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.player-login-content {
+  max-width: 42rem;
+  width: 100%;
+}
+
+/* Header */
+.player-login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.player-back-link {
+  display: inline-flex;
+  align-items: center;
+  color: white;
+  transition: color 0.2s;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+}
+
+.player-back-link:hover {
+  color: rgb(187, 247, 208);
+}
+
+/* Card */
+.player-login-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* Card Header */
+.player-card-header {
+  background: linear-gradient(to right, rgb(22, 163, 74), rgb(37, 99, 235));
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.player-icon-wrapper {
+  width: 4rem;
+  height: 4rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.player-icon {
+  font-size: 1.5rem;
+}
+
+.player-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.player-subtitle {
+  color: rgb(187, 247, 208);
+}
+
+/* Form Wrapper */
+.player-form-wrapper {
+  padding: 2rem;
+}
+
+.player-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Label */
+.player-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55, 65, 81);
+  margin-bottom: 0.75rem;
+}
+
+.player-label-icon {
+  margin-right: 0.5rem;
+  color: rgb(22, 163, 74);
+}
+
+/* Input */
+.player-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.player-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(134, 239, 172);
+  border-color: rgb(22, 163, 74);
+}
+
+.player-input-error {
+  border-color: rgb(239, 68, 68);
+}
+
+/* Error Message */
+.player-error-message {
+  background-color: rgb(254, 242, 242);
+  border: 1px solid rgb(254, 202, 202);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.player-error-icon {
+  color: rgb(239, 68, 68);
+  margin-right: 0.75rem;
+}
+
+.player-error-text {
+  color: rgb(185, 28, 28);
+  font-size: 0.875rem;
+}
+
+/* Submit Button */
+.player-submit-button {
+  width: 100%;
+  background-color: rgb(22, 163, 74);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.player-submit-button:hover:not(:disabled) {
+  background-color: rgb(21, 128, 61);
+}
+
+.player-submit-button:disabled {
+  background-color: rgb(156, 163, 175);
+  cursor: not-allowed;
+}
+
+.player-spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid transparent;
+  border-bottom-color: white;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Games Section */
+.player-games-section {
+  margin-top: 2rem;
+}
+
+.player-games-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(31, 41, 55);
+  margin-bottom: 1rem;
+}
+
+.player-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Game Card */
+.player-game-card {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-game-active {
+  background-color: rgb(240, 253, 244);
+  border: 1px solid rgb(187, 247, 208);
+}
+
+.player-game-waiting {
+  background-color: rgb(239, 246, 255);
+  border: 1px solid rgb(191, 219, 254);
+}
+
+.player-game-info {
+  flex: 1;
+}
+
+.player-game-name {
+  font-weight: 500;
+}
+
+.player-game-active .player-game-name {
+  color: rgb(22, 128, 74);
+}
+
+.player-game-waiting .player-game-name {
+  color: rgb(30, 64, 175);
+}
+
+.player-game-status {
+  font-size: 0.875rem;
+}
+
+.player-game-active .player-game-status {
+  color: rgb(22, 163, 74);
+}
+
+.player-game-waiting .player-game-status {
+  color: rgb(37, 99, 235);
+}
+
+/* Game Button */
+.player-game-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.player-game-button-active {
+  background-color: rgb(22, 163, 74);
+}
+
+.player-game-button-active:hover {
+  background-color: rgb(21, 128, 61);
+}
+
+.player-game-button-waiting {
+  background-color: rgb(37, 99, 235);
+}
+
+.player-game-button-waiting:hover {
+  background-color: rgb(29, 78, 216);
+}
+
+/* Info Box */
+.player-info-box {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: rgb(239, 246, 255);
+  border-radius: 0.5rem;
+}
+
+.player-info-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(30, 64, 175);
+  margin-bottom: 0.5rem;
+}
+
+.player-info-list {
+  font-size: 0.75rem;
+  color: rgb(29, 78, 216);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-info-list li {
+  margin-top: 0.25rem;
+}

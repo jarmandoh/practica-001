@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronLeft, faChevronRight, faTrophy, faStar } from '@fortawesome/free-solid-svg-icons';
+import './WinnerModal.css';
 
 const WinnerModal = ({ winnerCards, onClose }) => {
   const [currentWinnerIndex, setCurrentWinnerIndex] = useState(0);
@@ -50,16 +51,16 @@ const WinnerModal = ({ winnerCards, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="winner-modal">
+      <div className="winner-modal__container">
         {/* Header */}
-        <div className="bg-linear-to-r from-yellow-400 to-orange-500 text-white p-6 rounded-t-2xl">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <FontAwesomeIcon icon={faTrophy} className="text-2xl" />
+        <div className="winner-modal__header">
+          <div className="winner-modal__header-content">
+            <div className="winner-modal__title-wrapper">
+              <FontAwesomeIcon icon={faTrophy} className="winner-modal__trophy-icon" />
               <div>
-                <h2 className="text-2xl font-bold">¡BINGO!</h2>
-                <p className="text-yellow-100">
+                <h2 className="winner-modal__title">¡BINGO!</h2>
+                <p className="winner-modal__subtitle">
                   {winnerCards.length === 1 
                     ? 'Cartón Ganador' 
                     : `${winnerCards.length} Cartones Ganadores`
@@ -69,27 +70,27 @@ const WinnerModal = ({ winnerCards, onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:text-yellow-200 transition-colors p-2"
+              className="winner-modal__close-button"
             >
-              <FontAwesomeIcon icon={faTimes} className="text-xl" />
+              <FontAwesomeIcon icon={faTimes} className="winner-modal__close-icon" />
             </button>
           </div>
 
           {/* Navegación entre ganadores */}
           {winnerCards.length > 1 && (
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-yellow-300">
+            <div className="winner-modal__navigation">
               <button
                 onClick={prevWinner}
-                className="bg-white/20 hover:bg-white/30 rounded-lg p-2 transition-colors"
+                className="winner-modal__nav-button"
               >
                 <FontAwesomeIcon icon={faChevronLeft} />
               </button>
-              <span className="text-center">
+              <span className="winner-modal__nav-text">
                 Cartón {currentWinnerIndex + 1} de {winnerCards.length}
               </span>
               <button
                 onClick={nextWinner}
-                className="bg-white/20 hover:bg-white/30 rounded-lg p-2 transition-colors"
+                className="winner-modal__nav-button"
               >
                 <FontAwesomeIcon icon={faChevronRight} />
               </button>
@@ -98,32 +99,32 @@ const WinnerModal = ({ winnerCards, onClose }) => {
         </div>
 
         {/* Contenido del cartón ganador */}
-        <div className="p-6">
+        <div className="winner-modal__content">
           {/* Info del cartón */}
-          <div className="text-center mb-6">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
-              <h3 className="text-xl font-bold text-gray-800">
+          <div className="winner-modal__card-info">
+            <div className="winner-modal__card-title">
+              <FontAwesomeIcon icon={faStar} className="winner-modal__star-icon" />
+              <h3 className="winner-modal__card-number">
                 Cartón #{currentWinner.id}
               </h3>
-              <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+              <FontAwesomeIcon icon={faStar} className="winner-modal__star-icon" />
             </div>
-            <p className="text-purple-600 font-semibold">
+            <p className="winner-modal__pattern">
               Patrón Ganador: {getPatternDescription(currentWinner.winPattern)}
             </p>
           </div>
 
           {/* Cartón de Bingo */}
-          <div className="bg-linear-to-br from-purple-50 to-blue-50 rounded-xl p-4 shadow-inner">
+          <div className="winner-modal__bingo-card">
             {/* Headers de columnas */}
-            <div className="grid grid-cols-5 gap-2 mb-3">
+            <div className="winner-modal__columns">
               {['B', 'I', 'N', 'G', 'O'].map((letter, index) => (
                 <div
                   key={letter}
-                  className={`text-center font-bold text-white p-3 rounded-lg ${
+                  className={`winner-modal__column-header ${
                     currentWinner.winPattern.type === 'column' && currentWinner.winPattern.position === index
-                      ? 'bg-yellow-500 animate-pulse'
-                      : 'bg-purple-600'
+                      ? 'winner-modal__column-header--winning'
+                      : ''
                   }`}
                 >
                   {letter}
@@ -132,7 +133,7 @@ const WinnerModal = ({ winnerCards, onClose }) => {
             </div>
 
             {/* Grid del cartón */}
-            <div className="grid grid-cols-5 gap-2">
+            <div className="winner-modal__grid">
               {currentWinner.card.map((row, rowIndex) =>
                 row.map((cell, colIndex) => {
                   const isWinning = isWinningCell(rowIndex, colIndex, currentWinner.winPattern);
@@ -141,15 +142,13 @@ const WinnerModal = ({ winnerCards, onClose }) => {
                   return (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`
-                        h-12 flex items-center justify-center rounded-lg font-bold text-sm transition-all duration-300
-                        ${isWinning 
-                          ? 'bg-yellow-400 text-black shadow-lg ring-2 ring-yellow-500 animate-pulse transform scale-105' 
+                      className={`winner-modal__cell ${
+                        isWinning 
+                          ? 'winner-modal__cell--winning' 
                           : isFree 
-                            ? 'bg-green-500 text-white' 
-                            : 'bg-white text-gray-800 border-2 border-gray-200'
-                        }
-                      `}
+                            ? 'winner-modal__cell--free' 
+                            : 'winner-modal__cell--normal'
+                      }`}
                     >
                       {isFree ? '★' : cell}
                     </div>
@@ -160,28 +159,28 @@ const WinnerModal = ({ winnerCards, onClose }) => {
           </div>
 
           {/* Botones de acción */}
-          <div className="flex justify-center space-x-4 mt-6">
+          <div className="winner-modal__actions">
             {winnerCards.length > 1 && (
               <>
                 <button
                   onClick={prevWinner}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
+                  className="winner-modal__action-button winner-modal__action-button--secondary"
                 >
-                  <FontAwesomeIcon icon={faChevronLeft} className="mr-2" />
+                  <FontAwesomeIcon icon={faChevronLeft} className="winner-modal__action-icon" />
                   Anterior
                 </button>
                 <button
                   onClick={nextWinner}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
+                  className="winner-modal__action-button winner-modal__action-button--secondary"
                 >
                   Siguiente
-                  <FontAwesomeIcon icon={faChevronRight} className="ml-2" />
+                  <FontAwesomeIcon icon={faChevronRight} className="winner-modal__action-icon-right" />
                 </button>
               </>
             )}
             <button
               onClick={onClose}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-2 rounded-lg transition-colors"
+              className="winner-modal__action-button winner-modal__action-button--primary"
             >
               Cerrar
             </button>

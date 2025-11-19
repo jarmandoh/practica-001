@@ -1,0 +1,52 @@
+.cont-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .cont-stats {
+    flex-direction: row;
+  }
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-text {
+  flex: 1;
+}
+
+.stat-label {
+  color: rgb(191, 219, 254);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.stat-icon {
+  font-size: 1.875rem;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}

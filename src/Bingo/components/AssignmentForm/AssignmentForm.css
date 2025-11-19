@@ -1,0 +1,287 @@
+/* Assignment Form Overlay */
+.assignment-form-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.assignment-form-container {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 42rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Header */
+.assignment-form-header {
+  background: linear-gradient(to right, rgb(147, 51, 234), rgb(37, 99, 235));
+  color: white;
+  padding: 1.5rem;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.assignment-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.assignment-form-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.assignment-close-button {
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s;
+}
+
+.assignment-close-button:hover {
+  color: rgb(209, 213, 219);
+}
+
+.assignment-close-icon {
+  font-size: 1.25rem;
+}
+
+/* Form */
+.assignment-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Label */
+.assignment-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55, 65, 81);
+  margin-bottom: 0.5rem;
+}
+
+.assignment-label-icon {
+  margin-right: 0.5rem;
+  color: rgb(147, 51, 234);
+}
+
+.assignment-label-optional {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55, 65, 81);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Input */
+.assignment-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.assignment-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(216, 180, 254);
+  border-color: rgb(147, 51, 234);
+}
+
+.assignment-input-error {
+  border-color: rgb(239, 68, 68);
+}
+
+/* Select */
+.assignment-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.assignment-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(216, 180, 254);
+  border-color: rgb(147, 51, 234);
+}
+
+/* Card Input Group */
+.assignment-card-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.assignment-input-flex {
+  flex: 1;
+}
+
+.assignment-random-button {
+  padding: 0.75rem 1rem;
+  background-color: rgb(243, 244, 246);
+  border: none;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.assignment-random-button:hover {
+  background-color: rgb(229, 231, 235);
+}
+
+/* Error */
+.assignment-error {
+  color: rgb(239, 68, 68);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Section */
+.assignment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Grid */
+.assignment-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .assignment-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Readonly Input */
+.assignment-input-readonly {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 0.5rem;
+  background-color: rgb(249, 250, 251);
+}
+
+.assignment-readonly-text {
+  color: rgb(55, 65, 81);
+  font-weight: 500;
+}
+
+/* Checkbox */
+.assignment-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.assignment-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.assignment-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: rgb(147, 51, 234);
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.assignment-checkbox:focus {
+  box-shadow: 0 0 0 2px rgb(216, 180, 254);
+}
+
+.assignment-checkbox-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55, 65, 81);
+}
+
+/* Buttons */
+.assignment-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(229, 231, 235);
+}
+
+.assignment-cancel-button {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 0.5rem;
+  color: rgb(55, 65, 81);
+  background: white;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.assignment-cancel-button:hover:not(:disabled) {
+  background-color: rgb(249, 250, 251);
+}
+
+.assignment-cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.assignment-submit-button {
+  padding: 0.75rem 1.5rem;
+  background-color: rgb(147, 51, 234);
+  color: white;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+}
+
+.assignment-submit-button:hover:not(:disabled) {
+  background-color: rgb(126, 34, 206);
+}
+
+.assignment-submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.assignment-spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  height: 1rem;
+  width: 1rem;
+  border: 2px solid transparent;
+  border-bottom-color: white;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

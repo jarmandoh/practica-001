@@ -9,7 +9,8 @@ import {
   faHashtag
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
-import { useGameManager } from '../hooks/useGameManager';
+import { useGameManager } from '../../hooks/useGameManager';
+import './PlayerLogin.css';
 
 const PlayerLogin = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -75,37 +76,34 @@ const PlayerLogin = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-600 to-blue-600 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
+    <div className="player-login-container">
+      <div className="player-login-content">
         {/* Header con navegación */}
-        <div className="text-center mb-8">
-          <Link 
-            to="/bingo" 
-            className="inline-flex items-center text-white hover:text-green-200 transition-colors mb-6"
-          >
+        <div className="player-login-header">
+          <Link to="/bingo" className="player-back-link">
             <FontAwesomeIcon icon={faHome} className="mr-2" />
             ← Volver al Inicio
           </Link>
         </div>
 
         {/* Tarjeta de login */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="player-login-card">
           {/* Header */}
-          <div className="bg-linear-to-r from-green-600 to-blue-600 text-white p-6 text-center">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FontAwesomeIcon icon={faGamepad} className="text-2xl" />
+          <div className="player-card-header">
+            <div className="player-icon-wrapper">
+              <FontAwesomeIcon icon={faGamepad} className="player-icon" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Unirse al Juego</h1>
-            <p className="text-green-100">Ingresa tus datos para comenzar a jugar</p>
+            <h1 className="player-title">Unirse al Juego</h1>
+            <p className="player-subtitle">Ingresa tus datos para comenzar a jugar</p>
           </div>
 
           {/* Formulario */}
-          <div className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="player-form-wrapper">
+            <form onSubmit={handleSubmit} className="player-form">
               {/* Nombre del jugador */}
               <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
-                  <FontAwesomeIcon icon={faUser} className="mr-2 text-green-600" />
+                <label className="player-label">
+                  <FontAwesomeIcon icon={faUser} className="player-label-icon" />
                   Tu Nombre
                 </label>
                 <input
@@ -113,15 +111,15 @@ const PlayerLogin = ({ onLogin }) => {
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
                   disabled={isLoading}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-300 focus:outline-none"
+                  className="player-input"
                   placeholder="Ej: Juan Pérez"
                 />
               </div>
 
               {/* ID del juego */}
               <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
-                  <FontAwesomeIcon icon={faHashtag} className="mr-2 text-green-600" />
+                <label className="player-label">
+                  <FontAwesomeIcon icon={faHashtag} className="player-label-icon" />
                   ID del Juego
                 </label>
                 <input
@@ -129,18 +127,16 @@ const PlayerLogin = ({ onLogin }) => {
                   value={formData.gameId}
                   onChange={(e) => handleChange('gameId', e.target.value)}
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-300 focus:outline-none ${
-                    error ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`player-input ${error ? 'player-input-error' : ''}`}
                   placeholder="Ej: game_1234567890"
                 />
               </div>
 
               {/* Mensaje de error */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="text-red-500 mr-3" />
-                  <p className="text-red-700 text-sm">{error}</p>
+                <div className="player-error-message">
+                  <FontAwesomeIcon icon={faExclamationTriangle} className="player-error-icon" />
+                  <p className="player-error-text">{error}</p>
                 </div>
               )}
 
@@ -148,11 +144,11 @@ const PlayerLogin = ({ onLogin }) => {
               <button
                 type="submit"
                 disabled={isLoading || !formData.name.trim() || !formData.gameId.trim()}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center"
+                className="player-submit-button"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <div className="player-spinner"></div>
                     Uniéndote...
                   </>
                 ) : (
@@ -166,49 +162,45 @@ const PlayerLogin = ({ onLogin }) => {
 
             {/* Juegos disponibles */}
             {(activeGames.length > 0 || waitingGames.length > 0) && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <div className="player-games-section">
+                <h3 className="player-games-title">
                   Juegos Disponibles
                 </h3>
                 
-                <div className="space-y-3">
+                <div className="player-games-list">
                   {/* Juegos activos */}
                   {activeGames.map(game => (
-                    <div key={game.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium text-green-800">{game.name}</div>
-                          <div className="text-sm text-green-600">
-                            🟢 En progreso • {game.calledNumbers.length}/75 números
-                          </div>
+                    <div key={game.id} className="player-game-card player-game-active">
+                      <div className="player-game-info">
+                        <div className="player-game-name">{game.name}</div>
+                        <div className="player-game-status">
+                          🟢 En progreso • {game.calledNumbers.length}/75 números
                         </div>
-                        <button
-                          onClick={() => joinGame(game.id)}
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition-colors"
-                        >
-                          Unirse
-                        </button>
                       </div>
+                      <button
+                        onClick={() => joinGame(game.id)}
+                        className="player-game-button player-game-button-active"
+                      >
+                        Unirse
+                      </button>
                     </div>
                   ))}
                   
                   {/* Juegos esperando */}
                   {waitingGames.map(game => (
-                    <div key={game.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium text-blue-800">{game.name}</div>
-                          <div className="text-sm text-blue-600">
-                            ⏳ Esperando inicio • {game.currentPlayers}/{game.maxPlayers} jugadores
-                          </div>
+                    <div key={game.id} className="player-game-card player-game-waiting">
+                      <div className="player-game-info">
+                        <div className="player-game-name">{game.name}</div>
+                        <div className="player-game-status">
+                          ⏳ Esperando inicio • {game.currentPlayers}/{game.maxPlayers} jugadores
                         </div>
-                        <button
-                          onClick={() => joinGame(game.id)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors"
-                        >
-                          Unirse
-                        </button>
                       </div>
+                      <button
+                        onClick={() => joinGame(game.id)}
+                        className="player-game-button player-game-button-waiting"
+                      >
+                        Unirse
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -216,11 +208,11 @@ const PlayerLogin = ({ onLogin }) => {
             )}
 
             {/* Información adicional */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h3 className="text-sm font-semibold text-blue-800 mb-2">
+            <div className="player-info-box">
+              <h3 className="player-info-title">
                 ℹ️ Instrucciones
               </h3>
-              <ul className="text-xs text-blue-700 space-y-1">
+              <ul className="player-info-list">
                 <li>• Solicita el ID del juego al administrador</li>
                 <li>• Una vez unido, se te asignará un cartón automáticamente</li>
                 <li>• Los números se marcarán en tiempo real</li>

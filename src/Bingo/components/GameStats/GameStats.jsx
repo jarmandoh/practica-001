@@ -5,6 +5,7 @@ import {
   faUsers,
   faTrophy
 } from '@fortawesome/free-solid-svg-icons';
+import './GameStats.css';
 
 const GameStats = ({ 
   assignments = [], 
@@ -58,15 +59,15 @@ const GameStats = ({
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div className="cont-stats">
       {statsData.map((stat, index) => (
-        <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">{stat.label}</p>
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
+        <div key={index} className="stat-card">
+          <div className="stat-content">
+            <div className="stat-text">
+              <p className="stat-label">{stat.label}</p>
+              <p className="stat-value">{stat.value}</p>
             </div>
-            <FontAwesomeIcon icon={stat.icon} className={`text-3xl ${stat.iconColor}`} />
+            <FontAwesomeIcon icon={stat.icon} className={`stat-icon ${stat.iconColor}`} />
           </div>
         </div>
       ))}

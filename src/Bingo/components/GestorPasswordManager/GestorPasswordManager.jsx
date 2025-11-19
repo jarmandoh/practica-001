@@ -11,6 +11,7 @@ import {
   faCopy,
   faCheck
 } from '@fortawesome/free-solid-svg-icons';
+import './GestorPasswordManager.css';
 
 const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
   const [passwords, setPasswords] = useState([]);
@@ -78,7 +79,6 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
 
     savePasswords(updatedPasswords);
 
-    // Actualizar el juego correspondiente si se seleccionó uno
     if (formData.gameId) {
       onUpdateGestorPassword(formData.gameId, formData.password, formData.gestorName);
     }
@@ -92,7 +92,6 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
       const updatedPasswords = passwords.filter(pwd => pwd.id !== id);
       savePasswords(updatedPasswords);
 
-      // Si la contraseña estaba asignada a un juego, limpiarla
       if (passwordToDelete.gameId) {
         onUpdateGestorPassword(passwordToDelete.gameId, null, '');
       }
@@ -149,10 +148,10 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
     
     const hasPassword = game.gestorPassword;
     return (
-      <span className="flex items-center gap-2">
+      <span className="gpm-game-name">
         {game.name}
         {hasPassword && (
-          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+          <span className="gpm-game-badge">
             <FontAwesomeIcon icon={faKey} className="mr-1" />
             Con contraseña
           </span>
@@ -162,31 +161,25 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="gpm-overlay">
+      <div className="gpm-container">
         {/* Header */}
-        <div className="bg-purple-600 text-white p-6">
-          <div className="flex justify-between items-center">
+        <div className="gpm-header">
+          <div className="gpm-header-content">
             <div>
-              <h2 className="text-2xl font-bold">Gestión de Contraseñas de Gestores</h2>
-              <p className="text-purple-200 mt-1">Administra las credenciales de acceso para gestores</p>
+              <h2 className="gpm-title">Gestión de Contraseñas de Gestores</h2>
+              <p className="gpm-subtitle">Administra las credenciales de acceso para gestores</p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-purple-200 text-2xl"
-            >
+            <button onClick={onClose} className="gpm-close-button">
               <FontAwesomeIcon icon={faTimes} />
             </button>
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {/* Botón para crear nueva contraseña */}
-          <div className="mb-6">
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center"
-            >
+        <div className="gpm-content">
+          {/* Botón crear */}
+          <div className="gpm-create-section">
+            <button onClick={() => setShowForm(true)} className="gpm-create-button">
               <FontAwesomeIcon icon={faPlus} className="mr-2" />
               Nueva Contraseña
             </button>
@@ -194,44 +187,40 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
 
           {/* Formulario */}
           {showForm && (
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div className="gpm-form-container">
+              <h3 className="gpm-form-title">
                 {editingPassword ? 'Editar Contraseña' : 'Nueva Contraseña'}
               </h3>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="gpm-form">
+                <div className="gpm-form-grid">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nombre del Gestor *
-                    </label>
+                    <label className="gpm-label">Nombre del Gestor *</label>
                     <input
                       type="text"
                       value={formData.gestorName}
                       onChange={(e) => setFormData({...formData, gestorName: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                      className="gpm-input"
                       required
                       placeholder="Nombre del gestor"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contraseña *
-                    </label>
-                    <div className="flex gap-2">
+                    <label className="gpm-label">Contraseña *</label>
+                    <div className="gpm-password-group">
                       <input
                         type="text"
                         value={formData.password}
                         onChange={(e) => setFormData({...formData, password: e.target.value})}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                        className="gpm-input"
                         required
                         placeholder="Contraseña"
                       />
                       <button
                         type="button"
                         onClick={() => setFormData({...formData, password: generatePassword()})}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors"
+                        className="gpm-generate-button"
                         title="Generar contraseña aleatoria"
                       >
                         <FontAwesomeIcon icon={faKey} />
@@ -240,15 +229,13 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="gpm-form-grid">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Asignar a Juego (Opcional)
-                    </label>
+                    <label className="gpm-label">Asignar a Juego (Opcional)</label>
                     <select
                       value={formData.gameId}
                       onChange={(e) => setFormData({...formData, gameId: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                      className="gpm-select"
                     >
                       <option value="">Sin asignar a juego específico</option>
                       {games.map(game => (
@@ -260,46 +247,35 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Estado
-                    </label>
-                    <label className="flex items-center">
+                    <label className="gpm-label">Estado</label>
+                    <label className="gpm-checkbox-label">
                       <input
                         type="checkbox"
                         checked={formData.isActive}
                         onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                         className="mr-2"
                       />
-                      <span className="text-sm text-gray-700">Contraseña activa</span>
+                      <span className="gpm-checkbox-text">Contraseña activa</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Descripción/Notas
-                  </label>
+                  <label className="gpm-label">Descripción/Notas</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                    className="gpm-textarea"
                     rows="3"
                     placeholder="Descripción o notas adicionales"
                   />
                 </div>
 
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors"
-                  >
+                <div className="gpm-form-buttons">
+                  <button type="submit" className="gpm-submit-button">
                     {editingPassword ? 'Actualizar' : 'Crear'} Contraseña
                   </button>
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg transition-colors"
-                  >
+                  <button type="button" onClick={resetForm} className="gpm-cancel-button">
                     Cancelar
                   </button>
                 </div>
@@ -308,106 +284,82 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
           )}
 
           {/* Lista de contraseñas */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="bg-gray-50 px-6 py-3 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">
+          <div className="gpm-list-container">
+            <div className="gpm-list-header">
+              <h3 className="gpm-list-title">
                 Contraseñas Registradas ({passwords.length})
               </h3>
             </div>
 
             {passwords.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
+              <div className="gpm-table-wrapper">
+                <table className="gpm-table">
+                  <thead className="gpm-thead">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Gestor
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contraseña
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Juego Asignado
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Estado
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Creado
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
-                      </th>
+                      <th className="gpm-th">Gestor</th>
+                      <th className="gpm-th">Contraseña</th>
+                      <th className="gpm-th">Juego Asignado</th>
+                      <th className="gpm-th">Estado</th>
+                      <th className="gpm-th">Creado</th>
+                      <th className="gpm-th">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="gpm-tbody">
                     {passwords.map((password) => (
-                      <tr key={password.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {password.gestorName}
-                          </div>
+                      <tr key={password.id} className="gpm-tr">
+                        <td className="gpm-td">
+                          <div className="gpm-td-main">{password.gestorName}</div>
                           {password.description && (
-                            <div className="text-sm text-gray-500">
-                              {password.description}
-                            </div>
+                            <div className="gpm-td-desc">{password.description}</div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                        <td className="gpm-td">
+                          <div className="gpm-password-cell">
+                            <span className="gpm-password-display">
                               {showPassword[password.id] ? password.password : '••••••••'}
                             </span>
                             <button
                               onClick={() => togglePasswordVisibility(password.id)}
-                              className="text-gray-500 hover:text-gray-700"
+                              className="gpm-icon-button"
                               title={showPassword[password.id] ? 'Ocultar' : 'Mostrar'}
                             >
                               <FontAwesomeIcon icon={showPassword[password.id] ? faEyeSlash : faEye} />
                             </button>
                             <button
                               onClick={() => copyToClipboard(password.password, password.id)}
-                              className={`${
-                                copiedPasswords[password.id] 
-                                  ? 'text-green-600' 
-                                  : 'text-gray-500 hover:text-gray-700'
-                              }`}
+                              className={`gpm-icon-button ${copiedPasswords[password.id] ? 'gpm-icon-button-success' : ''}`}
                               title="Copiar contraseña"
                             >
                               <FontAwesomeIcon icon={copiedPasswords[password.id] ? faCheck : faCopy} />
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="gpm-td">
                           {password.gameId ? getGameName(password.gameId) : 'Sin asignar'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="gpm-td">
                           <button
                             onClick={() => togglePasswordStatus(password.id)}
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              password.isActive 
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                                : 'bg-red-100 text-red-800 hover:bg-red-200'
-                            }`}
+                            className={`gpm-status-badge ${password.isActive ? 'gpm-status-active' : 'gpm-status-inactive'}`}
                           >
                             {password.isActive ? 'Activa' : 'Inactiva'}
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="gpm-td gpm-td-date">
                           {new Date(password.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex gap-2">
+                        <td className="gpm-td">
+                          <div className="gpm-actions">
                             <button
                               onClick={() => handleEdit(password)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="gpm-action-button gpm-action-edit"
                               title="Editar"
                             >
                               <FontAwesomeIcon icon={faEdit} />
                             </button>
                             <button
                               onClick={() => handleDelete(password.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="gpm-action-button gpm-action-delete"
                               title="Eliminar"
                             >
                               <FontAwesomeIcon icon={faTrash} />
@@ -420,18 +372,11 @@ const GestorPasswordManager = ({ games, onUpdateGestorPassword, onClose }) => {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl text-gray-300 mb-4">🔑</div>
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                  No hay contraseñas registradas
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Crea la primera contraseña para gestores
-                </p>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors"
-                >
+              <div className="gpm-empty-state">
+                <div className="gpm-empty-icon">🔑</div>
+                <h3 className="gpm-empty-title">No hay contraseñas registradas</h3>
+                <p className="gpm-empty-text">Crea la primera contraseña para gestores</p>
+                <button onClick={() => setShowForm(true)} className="gpm-empty-button">
                   <FontAwesomeIcon icon={faPlus} className="mr-2" />
                   Crear Primera Contraseña
                 </button>

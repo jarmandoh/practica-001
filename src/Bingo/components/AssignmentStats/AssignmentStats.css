@@ -1,0 +1,134 @@
+.assignment-stats {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .assignment-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .assignment-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.assignment-stats__card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.assignment-stats__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.assignment-stats__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.assignment-stats__value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.assignment-stats__value--green {
+  color: #059669;
+}
+
+.assignment-stats__value--yellow {
+  color: #d97706;
+}
+
+.assignment-stats__value--orange {
+  color: #ea580c;
+}
+
+.assignment-stats__value--gray {
+  color: #4b5563;
+}
+
+.assignment-stats__subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.assignment-stats__icon-wrapper {
+  padding: 0.75rem;
+  border-radius: 50%;
+}
+
+.assignment-stats__icon-wrapper--blue {
+  background-color: #dbeafe;
+}
+
+.assignment-stats__icon-wrapper--green {
+  background-color: #d1fae5;
+}
+
+.assignment-stats__icon-wrapper--yellow {
+  background-color: #fef3c7;
+}
+
+.assignment-stats__icon-wrapper--orange {
+  background-color: #fed7aa;
+}
+
+.assignment-stats__icon-wrapper--gray {
+  background-color: #f3f4f6;
+}
+
+.assignment-stats__icon {
+  font-size: 1.5rem;
+}
+
+.assignment-stats__icon-wrapper--blue .assignment-stats__icon {
+  color: #2563eb;
+}
+
+.assignment-stats__icon-wrapper--green .assignment-stats__icon {
+  color: #059669;
+}
+
+.assignment-stats__icon-wrapper--yellow .assignment-stats__icon {
+  color: #d97706;
+}
+
+.assignment-stats__icon-wrapper--orange .assignment-stats__icon {
+  color: #ea580c;
+}
+
+.assignment-stats__icon-wrapper--gray .assignment-stats__icon {
+  color: #4b5563;
+}
+
+.assignment-stats__progress {
+  margin-top: 1rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  height: 0.5rem;
+}
+
+.assignment-stats__progress-bar {
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+
+.assignment-stats__progress-bar--blue {
+  background-color: #2563eb;
+}
+
+.assignment-stats__progress-bar--green {
+  background-color: #059669;
+}

@@ -8,8 +8,9 @@ import {
   faListOl,
   faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
-import { useGestorAuth } from '../hooks/useGestorAuth';
-import { useGameManager } from '../hooks/useGameManager';
+import { useGestorAuth } from '../../hooks/useGestorAuth';
+import { useGameManager } from '../../hooks/useGameManager';
+import './GestorLogin.css';
 
 const GestorLogin = () => {
   const { loginGestor } = useGestorAuth();
@@ -63,25 +64,25 @@ const GestorLogin = () => {
   );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-orange-600 to-red-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+    <div className="gestor-login-container">
+      <div className="gestor-login-card">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FontAwesomeIcon icon={faListOl} className="text-3xl text-orange-600" />
+        <div className="gestor-card-header">
+          <div className="gestor-icon-wrapper">
+            <FontAwesomeIcon icon={faListOl} className="gestor-icon" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Gestor de Sorteos</h1>
-          <p className="text-gray-600">
+          <h1 className="gestor-title">Gestor de Sorteos</h1>
+          <p className="gestor-subtitle">
             Accede para gestionar tu sorteo asignado
           </p>
         </div>
 
         {/* Mensaje de juegos disponibles */}
         {availableGames.length === 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="text-yellow-600 mr-2" />
-              <span className="text-sm text-yellow-800">
+          <div className="gestor-warning-message">
+            <div className="gestor-warning-content">
+              <FontAwesomeIcon icon={faExclamationTriangle} className="gestor-warning-icon" />
+              <span className="gestor-warning-text">
                 No hay juegos activos con gestor habilitado
               </span>
             </div>
@@ -89,17 +90,17 @@ const GestorLogin = () => {
         )}
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="gestor-form">
           {/* Selector de Juego */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="gestor-label">
               Juego Asignado
             </label>
             <select
               name="gameId"
               value={formData.gameId}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+              className="gestor-select"
               disabled={availableGames.length === 0}
             >
               <option value="">Selecciona el juego</option>
@@ -113,7 +114,7 @@ const GestorLogin = () => {
 
           {/* Nombre del Gestor */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="gestor-label">
               Tu Nombre
             </label>
             <input
@@ -122,28 +123,28 @@ const GestorLogin = () => {
               value={formData.gestorName}
               onChange={handleInputChange}
               placeholder="Nombre del gestor"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+              className="gestor-input"
             />
           </div>
 
           {/* Contraseña */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="gestor-label">
               Contraseña del Sorteo
             </label>
-            <div className="relative">
+            <div className="gestor-password-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Contraseña proporcionada por el admin"
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                className="gestor-input"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="gestor-toggle-password"
               >
                 <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
               </button>
@@ -152,25 +153,22 @@ const GestorLogin = () => {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="gestor-error-message">
+              <p className="gestor-error-text">{error}</p>
             </div>
           )}
 
           {/* Botones */}
-          <div className="space-y-4">
+          <div className="gestor-buttons">
             <button
               type="submit"
               disabled={loading || availableGames.length === 0}
-              className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white py-3 px-6 rounded-lg transition-colors font-semibold"
+              className="gestor-submit-button"
             >
               {loading ? 'Verificando...' : 'Acceder al Sorteo'}
             </button>
 
-            <Link
-              to="/bingo"
-              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 px-6 rounded-lg transition-colors font-semibold text-center block"
-            >
+            <Link to="/bingo" className="gestor-back-button">
               <FontAwesomeIcon icon={faHome} className="mr-2" />
               Volver al Inicio
             </Link>
@@ -178,9 +176,9 @@ const GestorLogin = () => {
         </form>
 
         {/* Info adicional */}
-        <div className="mt-8 p-4 bg-orange-50 rounded-lg">
-          <h4 className="font-semibold text-orange-800 mb-2">Como Gestor puedes:</h4>
-          <ul className="text-sm text-orange-700 space-y-1">
+        <div className="gestor-info-box">
+          <h4 className="gestor-info-title">Como Gestor puedes:</h4>
+          <ul className="gestor-info-list">
             <li>• Cantar números del sorteo</li>
             <li>• Controlar el flujo del juego</li>
             <li>• Ver cartones participantes</li>

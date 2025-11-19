@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from '../../hooks/useSocket';
+import './BingoCard.css';
 
 const BingoCard = ({ card, calledNumbers: initialCalledNumbers }) => {
   const columns = ['B', 'I', 'N', 'G', 'O'];
@@ -57,33 +58,30 @@ const BingoCard = ({ card, calledNumbers: initialCalledNumbers }) => {
   }, [socket, card]);
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl p-6">
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">CARTÓN DE BINGO</h2>
+    <div className="bingo-card">
+      <h2 className="bingo-card__title">CARTÓN DE BINGO</h2>
       
-      <div className="grid grid-cols-5 gap-2 mb-4">
+      <div className="bingo-card__header">
         {columns.map((letter) => (
-          <div
-            key={letter}
-            className="bg-purple-300 text-purple-900 text-2xl font-bold py-3 text-center rounded-lg"
-          >
+          <div key={letter} className="bingo-card__column-label">
             {letter}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-5 gap-2">
+      <div className="bingo-card__grid">
         {card.map((row, rowIndex) =>
           row.map((num, colIndex) => (
             <div
               key={`${rowIndex}-${colIndex}`}
               data-number={num}
               onClick={() => toggleNumber(num)}
-              className={`aspect-square flex items-center justify-center text-xl font-semibold rounded-lg border-2 transition-all duration-300 cursor-pointer ${
+              className={`bingo-card__cell ${
                 num === 'FREE'
-                  ? 'bg-yellow-200 text-yellow-900 border-yellow-400'
+                  ? 'bingo-card__cell--free'
                   : checkNumber(num)
-                  ? 'bg-green-300 text-green-900 border-green-400 transform scale-105 shadow-lg'
-                  : 'bg-gray-50 text-gray-800 border-gray-300 hover:bg-gray-100 hover:border-gray-400'
+                  ? 'bingo-card__cell--marked'
+                  : 'bingo-card__cell--normal'
               }`}
             >
               {num === 'FREE' ? '★' : num}
@@ -92,9 +90,9 @@ const BingoCard = ({ card, calledNumbers: initialCalledNumbers }) => {
         )}
       </div>
       
-      <div className="mt-4 text-center text-sm text-gray-600">
+      <div className="bingo-card__footer">
         <p>Números marcados: {markedNumbers.size + calledNumbers.filter(num => card.flat().includes(num)).length}</p>
-        <p className="text-xs mt-1">Haz clic en los números para marcarlos manualmente</p>
+        <p className="bingo-card__hint">Haz clic en los números para marcarlos manualmente</p>
       </div>
     </div>
   );
