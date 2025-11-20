@@ -16,6 +16,7 @@ import { useSocket } from '../hooks/useSocket';
 import NumberDisplay from '../components/NumberDisplay';
 import BingoCard from '../components/BingoCard';
 import ConfirmDialog from '../components/ConfirmDialog';
+import WinnerModal from '../components/WinnerModal';
 import { SocketProvider } from '../context/SocketContext';
 import bingoCardsData from '../data/bingoCards.json';
 
@@ -32,6 +33,8 @@ const BingoPlayerContent = () => {
   const [currentNumber, setCurrentNumber] = useState(null);
   const [calledNumbers, setCalledNumbers] = useState([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [winnerData, setWinnerData] = useState(null);
 
   useEffect(() => {
     document.title = 'Jugador | Bingo Game';
@@ -76,11 +79,22 @@ const BingoPlayerContent = () => {
       if (game) {
         setCurrentGame(game);
         setGameNotFound(false);
+        // Sincronizar calledNumbers y currentNumber con el juego
+        setCalledNumbers(game.calledNumbers || []);
+        setCurrentNumber(game.currentNumber || null);
       } else {
         setGameNotFound(true);
       }
     }
   }, [player?.gameId, getGameById]);
+
+  // useEffect para sincronizar calledNumbers cuando cambie currentGame
+  useEffect(() => {
+    if (currentGame) {
+      setCalledNumbers(currentGame.calledNumbers || []);
+      setCurrentNumber(currentGame.currentNumber || null);
+    }
+  }, [currentGame]);
 
   // useEffect separado para la asignación de cartón - solo ejecutar una vez cuando no hay cartón
   useEffect(() => {
@@ -101,24 +115,80 @@ const BingoPlayerContent = () => {
     if (socket) {
       socket.on('numberDrawn', (data) => {
         console.log('Número sorteado recibido:', data);
-        setCurrentNumber(data.number);
-        setCalledNumbers(data.calledNumbers || []);
-        
-        // También actualizar el juego actual con los nuevos datos
-        if (currentGame) {
-          setCurrentGame({
-            ...currentGame,
-            currentNumber: data.number,
-            calledNumbers: data.calledNumbers || []
-          });
+        // Solo actualizar si el sorteo coincide con el del jugador
+        const playerRaffle = currentGame?.currentRaffle || 1;
+        if (data.raffleNumber === playerRaffle) {
+          // Actualizar estados locales
+          setCurrentNumber(data.number);
+          setCalledNumbers(data.calledNumbers || []);
+          
+          // Actualizar el juego actual con los nuevos datos
+          if (currentGame) {
+            setCurrentGame({
+              ...currentGame,
+              currentNumber: data.number,
+              calledNumbers: data.calledNumbers || []
+            });
+          }
+          
+          // Re-cargar desde localStorage para asegurar sincronización
+          if (player?.gameId) {
+            const updatedGame = getGameById(player.gameId);
+            if (updatedGame) {
+              setCurrentGame(updatedGame);
+              setCalledNumbers(updatedGame.calledNumbers || []);
+              setCurrentNumber(updatedGame.currentNumber || null);
+            }
+          }
+        }
+      });
+
+      socket.on('raffleReset', (data) => {
+        console.log('Sorteo reiniciado:', data);
+        // Solo actualizar si el sorteo coincide con el del jugador
+        const playerRaffle = currentGame?.currentRaffle || 1;
+        if (data.raffleNumber === playerRaffle) {
+          // Limpiar estados locales
+          setCurrentNumber(null);
+          setCalledNumbers([]);
+          
+          // Actualizar el juego actual limpiando los números
+          if (currentGame) {
+            setCurrentGame({
+              ...currentGame,
+              currentNumber: null,
+              calledNumbers: []
+            });
+          }
+          
+          // Re-cargar desde localStorage para asegurar sincronización
+          if (player?.gameId) {
+            const updatedGame = getGameById(player.gameId);
+            if (updatedGame) {
+              setCurrentGame(updatedGame);
+              setCalledNumbers(updatedGame.calledNumbers || []);
+              setCurrentNumber(updatedGame.currentNumber || null);
+            }
+          }
+        }
+      });
+
+      socket.on('bingoWin', (data) => {
+        console.log('Victoria detectada:', data);
+        // Solo mostrar si es el cartón del jugador actual
+        if (data.cardNumber === player?.cardNumber) {
+          setWinnerData(data);
+          setShowWinnerModal(true);
         }
       });
 
       return () => {
         socket.off('numberDrawn');
+        socket.off('raffleReset');
+        socket.off('bingoWin');
       };
     }
-  }, [socket, currentGame]);
+  }, [socket, currentGame, player?.cardNumber, player?.gameId, getGameById]);
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -171,6 +241,14 @@ const BingoPlayerContent = () => {
         onConfirm={confirmLogout}
         onCancel={cancelLogout}
       />
+
+      {/* Winner Modal */}
+      {showWinnerModal && winnerData && (
+        <WinnerModal
+          winnerCards={[{ ...winnerData, id: winnerData.cardNumber }]}
+          onClose={() => setShowWinnerModal(false)}
+        />
+      )}
 
       {/* Number Display sticky */}
       <div className="fixed top-4 left-4 z-50">
@@ -237,6 +315,9 @@ const BingoPlayerContent = () => {
               <BingoCard 
                 card={playerCard}
                 calledNumbers={calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])}
+                playerName={player?.name}
+                cardNumber={player?.cardNumber}
+                gameId={currentGame?.id}
               />
             ) : (
               <div className="bg-white rounded-xl p-8 text-center">

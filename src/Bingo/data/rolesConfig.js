@@ -24,7 +24,7 @@ export const rolesConfig = [
     route: '/bingo/admin',
     colors: {
       gradient: 'from-purple-700 to-purple-900',
-      subtitle: 'text-purple-200',
+      subtitle: 'text-purple-600',
       dot: 'bg-purple-500',
       button: 'bg-purple-600',
       buttonHover: 'bg-purple-700'
@@ -49,7 +49,7 @@ export const rolesConfig = [
     route: '/bingo/gestor',
     colors: {
       gradient: 'from-blue-600 to-indigo-700',
-      subtitle: 'text-blue-100',
+      subtitle: 'text-blue-600',
       dot: 'bg-blue-500',
       button: 'bg-blue-600',
       buttonHover: 'bg-blue-700'
@@ -74,7 +74,7 @@ export const rolesConfig = [
     route: '/bingo/player',
     colors: {
       gradient: 'from-green-600 to-blue-600',
-      subtitle: 'text-green-100',
+      subtitle: 'text-green-600',
       dot: 'bg-green-500',
       button: 'bg-green-600',
       buttonHover: 'bg-green-700'

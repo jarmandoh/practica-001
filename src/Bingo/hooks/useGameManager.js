@@ -125,6 +125,11 @@ export const useGameManager = () => {
     }
   }, [games, activeGame]);
 
+  // Función para actualizar juego directamente (alias para compatibilidad)
+  const updateGame = useCallback((gameId, updates) => {
+    updateGameState(gameId, updates);
+  }, [updateGameState]);
+
   const deleteGame = useCallback((gameId) => {
     const updatedGames = games.filter(game => game.id !== gameId);
     saveGames(updatedGames);
@@ -310,6 +315,7 @@ export const useGameManager = () => {
     startGame,
     finishGame,
     updateGameState,
+    updateGame,
     deleteGame,
     getGameById,
     getGamesByStatus,

@@ -17,12 +17,15 @@ import {
   faTrash,
   faTimes,
   faSearch,
-  faChartBar
+  faChartBar,
+  faRedo
 } from '@fortawesome/free-solid-svg-icons';
+import WinnerModal from '../components/WinnerModal';
 import { useGestorAuth } from '../hooks/useGestorAuth';
 import { useGameManager } from '../hooks/useGameManager';
 import { useBingoAdmin } from '../hooks/useBingoAdmin';
 import { SocketProvider } from '../context/SocketContext';
+import { useSocket } from '../hooks/useSocket';
 import NumberDisplay from '../components/NumberDisplay';
 import BingoControls from '../components/BingoControls';
 import AssignmentForm from '../components/AssignmentForm';
@@ -30,7 +33,7 @@ import AssignmentStats from '../components/AssignmentStats';
 import GameStats from '../components/GameStats';
 
 
-const BingoGestor = () => {
+const BingoGestorContent = () => {
   const { gestor, logoutGestor, getTimeUntilExpiry } = useGestorAuth();
   const { getGameById, updateGame, addCalledNumber } = useGameManager();
   const {
@@ -39,6 +42,7 @@ const BingoGestor = () => {
     removeAssignment,
     getAssignmentsByRaffle
   } = useBingoAdmin();
+  const { socket } = useSocket();
 
   const [currentGame, setCurrentGame] = useState(null);
   const [gameStats, setGameStats] = useState({
@@ -46,6 +50,8 @@ const BingoGestor = () => {
     activeCards: 0,
     winners: 0
   });
+  const [showWinnerNotification, setShowWinnerNotification] = useState(false);
+  const [winnerInfo, setWinnerInfo] = useState(null);
 
   // Estados para manejo de asignaciones
   const [showForm, setShowForm] = useState(false);
@@ -57,6 +63,49 @@ const BingoGestor = () => {
   useEffect(() => {
     document.title = 'Gestor | Bingo Game';
   }, []);
+
+  // Escuchar eventos de victoria
+  useEffect(() => {
+    if (socket) {
+      socket.on('bingoWin', (data) => {
+        console.log('¡BINGO! Ganador detectado:', data);
+        
+        // Actualizar el juego con el ganador
+        if (currentGame && data.gameId === currentGame.id) {
+          const newWinner = {
+            name: data.playerName,
+            cardNumber: data.cardNumber,
+            pattern: data.pattern,
+            timestamp: new Date().toISOString()
+          };
+          
+          const updatedWinners = [...(currentGame.winners || []), newWinner];
+          updateGame(currentGame.id, { winners: updatedWinners });
+          
+          setCurrentGame({
+            ...currentGame,
+            winners: updatedWinners
+          });
+
+          // Mostrar notificación al gestor
+          setWinnerInfo(data);
+          setShowWinnerNotification(true);
+          
+          // Auto-ocultar después de 10 segundos
+          setTimeout(() => {
+            setShowWinnerNotification(false);
+          }, 10000);
+
+          // Actualizar estadísticas
+          updateGameStats();
+        }
+      });
+
+      return () => {
+        socket.off('bingoWin');
+      };
+    }
+  }, [socket, currentGame, updateGame]);
 
   // El sorteo actual se obtiene del juego actual del gestor
   const currentRaffle = currentGame?.currentRaffle || 1;
@@ -266,6 +315,48 @@ const BingoGestor = () => {
     }
   };
 
+  const handleResetRaffle = () => {
+    if (window.confirm('¿Estás seguro de que quieres reiniciar el sorteo? Se borrarán todos los números cantados y se limpiarán los cartones de los jugadores.')) {
+      if (currentGame) {
+        // Actualizar el juego en localStorage con calledNumbers vacío
+        updateGame(currentGame.id, { 
+          calledNumbers: [], 
+          currentNumber: null, 
+          winners: [] 
+        });
+        
+        // Actualizar el estado local
+        const updatedGame = {
+          ...currentGame,
+          calledNumbers: [],
+          currentNumber: null,
+          winners: []
+        };
+        setCurrentGame(updatedGame);
+        
+        // Emitir evento por socket para notificar a todos los jugadores
+        // que el sorteo se ha reiniciado
+        if (socket) {
+          socket.emit('raffleReset', {
+            gameId: currentGame.id,
+            raffleNumber: currentRaffle
+          });
+        }
+
+        // Limpiar ganadores de las asignaciones del sorteo actual
+        const assignments = JSON.parse(localStorage.getItem('bingoAssignments') || '[]');
+        const updatedAssignments = assignments.map(a => 
+          a.raffleNumber === currentRaffle ? { ...a, winner: false } : a
+        );
+        localStorage.setItem('bingoAssignments', JSON.stringify(updatedAssignments));
+        
+        updateGameStats();
+        
+        console.log('Sorteo reiniciado - calledNumbers eliminados del localStorage');
+      }
+    }
+  };
+
   const handleLogout = () => {
     if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
       logoutGestor();
@@ -276,38 +367,58 @@ const BingoGestor = () => {
 
   if (!currentGame) {
     return (
-      <SocketProvider>
-        <div className="min-h-screen bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-md">
-            <FontAwesomeIcon icon={faGamepad} className="text-6xl text-red-500 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Juego No Disponible</h2>
-            <p className="text-gray-600 mb-6">
-              El juego asignado no está disponible o ha sido eliminado.
-            </p>
-            <button
-              onClick={handleLogout}
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg transition-colors"
-            >
-              Volver al Login
-            </button>
-          </div>
+      <div className="min-h-screen bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-md">
+          <FontAwesomeIcon icon={faGamepad} className="text-6xl text-red-500 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Juego No Disponible</h2>
+          <p className="text-gray-600 mb-6">
+            El juego asignado no está disponible o ha sido eliminado.
+          </p>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg transition-colors"
+          >
+            Volver al Login
+          </button>
         </div>
-      </SocketProvider>
+      </div>
     );
   }
 
   return (
-    <SocketProvider>
-      <div className="min-h-screen bg-linear-to-br from-blue-200 via-purple-100 to-pink-200 p-4">
-        {/* Number Display sticky */}
-        <div className="fixed top-4 left-4 z-50">
-          <NumberDisplay 
-            currentNumber={currentGame?.currentNumber}
-            calledNumbers={currentGame?.calledNumbers || []}
-          />
-        </div>
+    <div className="min-h-screen bg-linear-to-br from-blue-200 via-purple-100 to-pink-200 p-4">
+      {/* Number Display sticky */}
+      <div className="fixed top-4 left-4 z-50">
+        <NumberDisplay 
+          currentNumber={currentGame?.currentNumber}
+          calledNumbers={currentGame?.calledNumbers || []}
+        />
+      </div>
 
-        <div className="max-w-7xl mx-auto ml-72">
+      {/* Notificación de Ganador */}
+      {showWinnerNotification && winnerInfo && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-400 border-4 border-yellow-600 rounded-xl p-6 shadow-2xl animate-bounce max-w-md">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <FontAwesomeIcon icon={faTrophy} className="text-6xl text-yellow-800" />
+              <div>
+                <h3 className="text-2xl font-bold text-yellow-900 mb-2">¡BINGO!</h3>
+                <p className="text-yellow-800 font-semibold">{winnerInfo.playerName}</p>
+                <p className="text-yellow-700 text-sm">Cartón #{winnerInfo.cardNumber}</p>
+                <p className="text-yellow-700 text-sm">Patrón: {winnerInfo.pattern}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowWinnerNotification(false)}
+              className="text-yellow-800 hover:text-yellow-900 text-xl"
+            >
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto ml-72">
           {/* Header */}
           <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 mb-6 shadow-lg">
             <div className="flex justify-between items-center">
@@ -486,12 +597,22 @@ const BingoGestor = () => {
                       Reanudar
                     </button>
                   )}
+                  <button
+                    onClick={handleResetRaffle}
+                    className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition-colors"
+                    title="Reiniciar sorteo (borrar números cantados)"
+                  >
+                    <FontAwesomeIcon icon={faRedo} className="mr-2" />
+                    Reiniciar
+                  </button>
                 </div>
               </div>
               {currentGame.status === 'active' && (
                 <BingoControls 
                   onCallNumber={handleCallNumber}
                   calledNumbers={currentGame.calledNumbers || []}
+                  currentRaffle={currentRaffle}
+                  gameId={currentGame.id}
                 />
               )}
               {currentGame.status === 'waiting' && (
@@ -819,38 +940,45 @@ const BingoGestor = () => {
             </div>
           )}
 
-          {/* Instrucciones */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-gray-700 mb-4">Instrucciones para el Gestor</h3>
-            <div className="grid md:grid-cols-3 gap-6 text-gray-600">
-              <div>
-                <h4 className="font-semibold mb-2">Control de Números</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• Usa los controles para cantar números</li>
-                  <li>• Los números se muestran automáticamente</li>
-                  <li>• Puedes pausar y reanudar el sorteo</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Gestión de Participantes</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• Ve la lista de todos los participantes</li>
-                  <li>• Marca ganadores cuando hagan BINGO</li>
-                  <li>• Revisa el estado de cada cartón</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Estadísticas</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• Monitorea el progreso del sorteo</li>
-                  <li>• Ve estadísticas en tiempo real</li>
-                  <li>• Controla el flujo del juego</li>
-                </ul>
-              </div>
+        {/* Instrucciones para el Gestor */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+          <h3 className="text-xl font-bold text-gray-700 mb-4">Instrucciones para el Gestor</h3>
+          <div className="grid md:grid-cols-3 gap-6 text-gray-600">
+            <div>
+              <h4 className="font-semibold mb-2">Control de Números</h4>
+              <ul className="text-sm space-y-1">
+                <li>• Usa los controles para cantar números</li>
+                <li>• Los números se muestran automáticamente</li>
+                <li>• Puedes pausar y reanudar el sorteo</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Gestión de Participantes</h4>
+              <ul className="text-sm space-y-1">
+                <li>• Ve la lista de todos los participantes</li>
+                <li>• Marca ganadores cuando hagan BINGO</li>
+                <li>• Revisa el estado de cada cartón</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Estadísticas</h4>
+              <ul className="text-sm space-y-1">
+                <li>• Monitorea el progreso del sorteo</li>
+                <li>• Ve estadísticas en tiempo real</li>
+                <li>• Controla el flujo del juego</li>
+              </ul>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const BingoGestor = () => {
+  return (
+    <SocketProvider>
+      <BingoGestorContent />
     </SocketProvider>
   );
 };

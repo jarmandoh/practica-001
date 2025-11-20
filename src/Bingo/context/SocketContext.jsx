@@ -7,44 +7,65 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // En un entorno real, conectarías a tu servidor de sockets
-    // Por ahora, simularemos la funcionalidad sin servidor real
+    // Usar BroadcastChannel para comunicación entre pestañas
+    const channel = new BroadcastChannel('bingo_game_channel');
+
     const mockSocket = {
+      _listeners: {},
+
       emit: (event, data) => {
         console.log('Socket emit:', event, data);
-        // Simular emisión de eventos
-        if (event === 'numberDrawn') {
-          // Simular broadcast a todos los clientes
-          setTimeout(() => {
-            mockSocket.onNumberDrawn?.(data);
-          }, 100);
-        }
+        // Enviar a otras pestañas
+        channel.postMessage({ type: event, data });
+
+        // También disparar localmente si es necesario
+        // mockSocket._trigger(event, data);
       },
+
       on: (event, callback) => {
         console.log('Socket listening for:', event);
-        if (event === 'numberDrawn') {
-          mockSocket.onNumberDrawn = callback;
+        if (!mockSocket._listeners[event]) {
+          mockSocket._listeners[event] = [];
         }
+        mockSocket._listeners[event].push(callback);
       },
-      off: (event) => {
+
+      off: (event, callback) => {
         console.log('Socket stop listening for:', event);
-        if (event === 'numberDrawn') {
-          mockSocket.onNumberDrawn = null;
+        if (mockSocket._listeners[event]) {
+          if (callback) {
+            mockSocket._listeners[event] = mockSocket._listeners[event].filter(cb => cb !== callback);
+          } else {
+            delete mockSocket._listeners[event];
+          }
         }
       },
+
+      _trigger: (event, data) => {
+        if (mockSocket._listeners[event]) {
+          mockSocket._listeners[event].forEach(cb => cb(data));
+        }
+      },
+
       disconnect: () => {
         console.log('Socket disconnected');
+        channel.close();
         setIsConnected(false);
       }
+    };
+
+    // Escuchar mensajes de otras pestañas
+    channel.onmessage = (msg) => {
+      const { type, data } = msg.data;
+      console.log('Socket received from channel:', type, data);
+      mockSocket._trigger(type, data);
     };
 
     setSocket(mockSocket);
     setIsConnected(true);
 
     return () => {
-      if (mockSocket) {
-        mockSocket.disconnect();
-      }
+      mockSocket.disconnect();
     };
   }, []);
 

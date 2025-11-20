@@ -2,13 +2,20 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSocket } from './useSocket';
 import bingoCardsData from '../data/bingoCards.json';
 
-export const useBingo = () => {
-  const [calledNumbers, setCalledNumbers] = useState([]);
+export const useBingo = (gameId = null, initialCalledNumbers = []) => {
+  const [calledNumbers, setCalledNumbers] = useState(initialCalledNumbers);
   const [currentNumber, setCurrentNumber] = useState(null);
   const [isGameActive, setIsGameActive] = useState(false);
   const [bingoCard, setBingoCard] = useState(() => generateBingoCard());
   const [winnerCards, setWinnerCards] = useState([]);
   const { socket } = useSocket();
+
+  // Sincronizar calledNumbers con el prop inicial
+  useEffect(() => {
+    if (initialCalledNumbers && initialCalledNumbers.length > 0) {
+      setCalledNumbers(initialCalledNumbers);
+    }
+  }, [initialCalledNumbers]);
 
   // Generar cartón de Bingo
   function generateBingoCard() {
@@ -100,7 +107,7 @@ export const useBingo = () => {
   }, [calledNumbers]);
 
   // Sacar número sin animación
-  const drawNumber = useCallback(() => {
+  const drawNumber = useCallback((raffleNumber = 1) => {
     const nextNum = getNextNumber();
     if (nextNum) {
       setCurrentNumber(nextNum);
@@ -111,7 +118,8 @@ export const useBingo = () => {
         if (socket) {
           socket.emit('numberDrawn', {
             number: nextNum,
-            calledNumbers: newCalledNumbers
+            calledNumbers: newCalledNumbers,
+            raffleNumber: raffleNumber
           });
         }
         
@@ -141,12 +149,21 @@ export const useBingo = () => {
     if (socket) {
       socket.on('numberDrawn', (data) => {
         setCurrentNumber(data.number);
-        setCalledNumbers(data.calledNumbers);
+        setCalledNumbers(data.calledNumbers || []);
         setIsGameActive(true);
+      });
+
+      socket.on('raffleReset', (data) => {
+        console.log('Sorteo reiniciado en useBingo:', data);
+        setCurrentNumber(null);
+        setCalledNumbers([]);
+        setIsGameActive(false);
+        setWinnerCards([]);
       });
 
       return () => {
         socket.off('numberDrawn');
+        socket.off('raffleReset');
       };
     }
   }, [socket]);

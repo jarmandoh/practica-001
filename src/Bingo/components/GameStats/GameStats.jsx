@@ -36,7 +36,7 @@ const GameStats = ({
       label: `Cartones Total (Sorteo ${currentRaffle})`,
       value: totalCards,
       icon: faListOl,
-      iconColor: 'text-blue-300'
+      iconColor: 'text-blue-600'
     },
     {
       label: `Cartones Activos (Sorteo ${currentRaffle})`,
