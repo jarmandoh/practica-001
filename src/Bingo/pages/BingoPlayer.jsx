@@ -110,85 +110,123 @@ const BingoPlayerContent = () => {
     }
   }, [player?.cardNumber, playerCard, generatePlayerCardFromNumber]);
 
-  // useEffect para escuchar eventos del socket
-  useEffect(() => {
-    if (socket) {
-      socket.on('numberDrawn', (data) => {
-        console.log('Número sorteado recibido:', data);
-        // Solo actualizar si el sorteo coincide con el del jugador
-        const playerRaffle = currentGame?.currentRaffle || 1;
-        if (data.raffleNumber === playerRaffle) {
-          // Actualizar estados locales
-          setCurrentNumber(data.number);
-          setCalledNumbers(data.calledNumbers || []);
-          
-          // Actualizar el juego actual con los nuevos datos
-          if (currentGame) {
-            setCurrentGame({
-              ...currentGame,
-              currentNumber: data.number,
-              calledNumbers: data.calledNumbers || []
-            });
-          }
-          
-          // Re-cargar desde localStorage para asegurar sincronización
-          if (player?.gameId) {
-            const updatedGame = getGameById(player.gameId);
-            if (updatedGame) {
-              setCurrentGame(updatedGame);
-              setCalledNumbers(updatedGame.calledNumbers || []);
-              setCurrentNumber(updatedGame.currentNumber || null);
-            }
+  // Handlers memoizados para eventos del socket
+  const handleNumberDrawn = useCallback((data) => {
+    console.log('Número sorteado recibido:', data);
+    try {
+      const playerRaffle = currentGame?.currentRaffle || 1;
+      if (data.raffleNumber === playerRaffle) {
+        setCurrentNumber(data.number);
+        setCalledNumbers(data.calledNumbers || []);
+        
+        setCurrentGame(prev => ({
+          ...prev,
+          currentNumber: data.number,
+          calledNumbers: data.calledNumbers || []
+        }));
+        
+        // Re-cargar desde localStorage para asegurar sincronización
+        if (player?.gameId) {
+          const updatedGame = getGameById(player.gameId);
+          if (updatedGame) {
+            setCurrentGame(updatedGame);
+            setCalledNumbers(updatedGame.calledNumbers || []);
+            setCurrentNumber(updatedGame.currentNumber || null);
           }
         }
-      });
-
-      socket.on('raffleReset', (data) => {
-        console.log('Sorteo reiniciado:', data);
-        // Solo actualizar si el sorteo coincide con el del jugador
-        const playerRaffle = currentGame?.currentRaffle || 1;
-        if (data.raffleNumber === playerRaffle) {
-          // Limpiar estados locales
-          setCurrentNumber(null);
-          setCalledNumbers([]);
-          
-          // Actualizar el juego actual limpiando los números
-          if (currentGame) {
-            setCurrentGame({
-              ...currentGame,
-              currentNumber: null,
-              calledNumbers: []
-            });
-          }
-          
-          // Re-cargar desde localStorage para asegurar sincronización
-          if (player?.gameId) {
-            const updatedGame = getGameById(player.gameId);
-            if (updatedGame) {
-              setCurrentGame(updatedGame);
-              setCalledNumbers(updatedGame.calledNumbers || []);
-              setCurrentNumber(updatedGame.currentNumber || null);
-            }
-          }
-        }
-      });
-
-      socket.on('bingoWin', (data) => {
-        console.log('Victoria detectada:', data);
-        // Solo mostrar si es el cartón del jugador actual
-        if (data.cardNumber === player?.cardNumber) {
-          setWinnerData(data);
-          setShowWinnerModal(true);
-        }
-      });
-
-      return () => {
-        socket.off('numberDrawn');
-        socket.off('raffleReset');
-        socket.off('bingoWin');
-      };
+      }
+    } catch (error) {
+      console.error('Error al procesar número sorteado:', error);
     }
-  }, [socket, currentGame, player?.cardNumber, player?.gameId, getGameById]);
+  }, [currentGame, player?.gameId, getGameById]);
+
+  const handleRaffleReset = useCallback((data) => {
+    console.log('Sorteo reiniciado:', data);
+    try {
+      const playerRaffle = currentGame?.currentRaffle || 1;
+      if (data.raffleNumber === playerRaffle) {
+        setCurrentNumber(null);
+        setCalledNumbers([]);
+        
+        setCurrentGame(prev => ({
+          ...prev,
+          currentNumber: null,
+          calledNumbers: []
+        }));
+        
+        // Re-cargar desde localStorage
+        if (player?.gameId) {
+          const updatedGame = getGameById(player.gameId);
+          if (updatedGame) {
+            setCurrentGame(updatedGame);
+            setCalledNumbers(updatedGame.calledNumbers || []);
+            setCurrentNumber(updatedGame.currentNumber || null);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error al procesar reinicio de sorteo:', error);
+    }
+  }, [currentGame, player?.gameId, getGameById]);
+
+  const handleBingoWinPlayer = useCallback((data) => {
+    console.log('Victoria detectada:', data);
+    try {
+      if (data.cardNumber === player?.cardNumber) {
+        setWinnerData(data);
+        setShowWinnerModal(true);
+      }
+    } catch (error) {
+      console.error('Error al procesar victoria:', error);
+    }
+  }, [player?.cardNumber]);
+
+  // useEffect consolidado para todos los eventos del socket
+  useEffect(() => {
+    if (!socket) return;
+
+    // Handlers de conexión
+    const handleConnect = () => {
+      console.log('Socket conectado (Player)');
+      if (player?.gameId) {
+        socket.emit('joinGame', { gameId: player.gameId });
+      }
+    };
+
+    const handleDisconnect = () => {
+      console.log('Socket desconectado (Player)');
+    };
+
+    const handleReconnect = () => {
+      console.log('Socket reconectado (Player)');
+      if (player?.gameId) {
+        socket.emit('joinGame', { gameId: player.gameId });
+      }
+    };
+
+    // Registrar todos los listeners
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('reconnect', handleReconnect);
+    socket.on('numberDrawn', handleNumberDrawn);
+    socket.on('raffleReset', handleRaffleReset);
+    socket.on('bingoWin', handleBingoWinPlayer);
+
+    // Si ya está conectado, unirse al juego
+    if (socket.connected && player?.gameId) {
+      socket.emit('joinGame', { gameId: player.gameId });
+    }
+
+    // Cleanup completo
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('reconnect', handleReconnect);
+      socket.off('numberDrawn', handleNumberDrawn);
+      socket.off('raffleReset', handleRaffleReset);
+      socket.off('bingoWin', handleBingoWinPlayer);
+    };
+  }, [socket, player?.gameId, handleNumberDrawn, handleRaffleReset, handleBingoWinPlayer]);
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -233,6 +271,16 @@ const BingoPlayerContent = () => {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-200 via-teal-100 to-blue-200 p-4">
+      {/* Indicador de estado de conexión */}
+      {socket && !socket.connected && (
+        <div className="fixed top-20 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 bg-white rounded-full"></span>
+            Conexión perdida - Reconectando...
+          </div>
+        </div>
+      )}
+
       {/* Confirm Logout Dialog */}
       <ConfirmDialog
         isOpen={showLogoutConfirm}

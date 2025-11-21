@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import bingoCardsData from '../data/bingoCards.json';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome, 
@@ -35,7 +36,7 @@ import GameStats from '../components/GameStats';
 
 const BingoGestorContent = () => {
   const { gestor, logoutGestor, getTimeUntilExpiry } = useGestorAuth();
-  const { getGameById, updateGame, addCalledNumber } = useGameManager();
+  const { getGameById, updateGame, addCalledNumber, checkWinPattern } = useGameManager();
   const {
     assignCard,
     updateAssignment,
@@ -52,6 +53,8 @@ const BingoGestorContent = () => {
   });
   const [showWinnerNotification, setShowWinnerNotification] = useState(false);
   const [winnerInfo, setWinnerInfo] = useState(null);
+  const [autoDetectedWinners, setAutoDetectedWinners] = useState([]);
+  const [showAutoWinnersAlert, setShowAutoWinnersAlert] = useState(false);
 
   // Estados para manejo de asignaciones
   const [showForm, setShowForm] = useState(false);
@@ -64,51 +67,166 @@ const BingoGestorContent = () => {
     document.title = 'Gestor | Bingo Game';
   }, []);
 
-  // Escuchar eventos de victoria
-  useEffect(() => {
-    if (socket) {
-      socket.on('bingoWin', (data) => {
-        console.log('¡BINGO! Ganador detectado:', data);
-        
-        // Actualizar el juego con el ganador
-        if (currentGame && data.gameId === currentGame.id) {
-          const newWinner = {
-            name: data.playerName,
-            cardNumber: data.cardNumber,
-            pattern: data.pattern,
-            timestamp: new Date().toISOString()
-          };
-          
-          const updatedWinners = [...(currentGame.winners || []), newWinner];
-          updateGame(currentGame.id, { winners: updatedWinners });
-          
-          setCurrentGame({
-            ...currentGame,
-            winners: updatedWinners
-          });
-
-          // Mostrar notificación al gestor
-          setWinnerInfo(data);
-          setShowWinnerNotification(true);
-          
-          // Auto-ocultar después de 10 segundos
-          setTimeout(() => {
-            setShowWinnerNotification(false);
-          }, 10000);
-
-          // Actualizar estadísticas
-          updateGameStats();
-        }
-      });
-
-      return () => {
-        socket.off('bingoWin');
-      };
-    }
-  }, [socket, currentGame, updateGame]);
-
   // El sorteo actual se obtiene del juego actual del gestor
   const currentRaffle = currentGame?.currentRaffle || 1;
+
+  // Función para verificar cartones ganadores según el patrón del sorteo
+  const checkForWinners = useCallback((updatedCalledNumbers) => {
+    if (updatedCalledNumbers.length < 5 || !currentGame) return [];
+
+    const winners = [];
+    const winPatterns = currentGame.settings?.winPatterns || ['line', 'diagonal', 'fullCard'];
+    
+    // Obtener todos los cartones asignados al sorteo actual
+    const assignments = getAssignmentsByRaffle(currentRaffle);
+    
+    assignments.forEach(assignment => {
+      // Verificar cada cartón en el rango de la asignación
+      for (let cardNum = assignment.startCard; cardNum <= assignment.endCard; cardNum++) {
+        const cardData = bingoCardsData.find(card => card.id === cardNum);
+        
+        if (cardData) {
+          // Verificar cada patrón permitido
+          for (const pattern of winPatterns) {
+            const markedNumbers = [];
+            
+            // Recopilar números marcados del cartón
+            cardData.card.forEach((row, rowIndex) => {
+              row.forEach((cell, colIndex) => {
+                if (cell !== 'FREE' && updatedCalledNumbers.includes(cell)) {
+                  markedNumbers.push({ number: cell, row: rowIndex, col: colIndex });
+                }
+              });
+            });
+            
+            // Verificar si el cartón es ganador con el patrón
+            const isWinner = checkWinPattern(markedNumbers.map(m => m.number), pattern);
+            
+            if (isWinner) {
+              winners.push({
+                cardNumber: cardNum,
+                participantName: assignment.participantName,
+                pattern: pattern,
+                card: cardData.card,
+                assignmentId: assignment.id
+              });
+              break; // Un cartón puede ganar solo una vez
+            }
+          }
+        }
+      }
+    });
+    
+    return winners;
+  }, [currentGame, currentRaffle, getAssignmentsByRaffle, checkWinPattern]);
+
+  // Función para actualizar estadísticas (declarada antes de usarse)
+  const updateGameStats = useCallback(() => {
+    const assignments = getAssignmentsByRaffle(currentRaffle);
+    const totalCardsGenerated = assignments.reduce((total, assignment) => {
+      // Validar que las propiedades existan y sean números válidos
+      const startCard = parseInt(assignment.startCard) || 0;
+      const endCard = parseInt(assignment.endCard) || 0;
+      const quantity = assignment.quantity || 0;
+      
+      // Si tiene quantity definido, usarlo; sino calcular del rango
+      if (quantity > 0) {
+        return total + quantity;
+      } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
+        return total + (endCard - startCard + 1);
+      } else {
+        return total + 1; // Al menos contar 1 cartón por asignación
+      }
+    }, 0) || 0;
+    
+    setGameStats({
+      totalCards: totalCardsGenerated,
+      activeCards: assignments.filter(a => a.paid).length,
+      winners: assignments.filter(a => a.winner).length
+    });
+  }, [currentRaffle, getAssignmentsByRaffle]);
+
+  // Handler memoizado para eventos de victoria
+  const handleBingoWin = useCallback((data) => {
+    console.log('¡BINGO! Ganador detectado:', data);
+    
+    try {
+      if (currentGame && data.gameId === currentGame.id) {
+        const newWinner = {
+          name: data.playerName,
+          cardNumber: data.cardNumber,
+          pattern: data.pattern,
+          timestamp: new Date().toISOString()
+        };
+        
+        const updatedWinners = [...(currentGame.winners || []), newWinner];
+        updateGame(currentGame.id, { winners: updatedWinners });
+        
+        setCurrentGame(prev => ({
+          ...prev,
+          winners: updatedWinners
+        }));
+
+        // Mostrar notificación al gestor
+        setWinnerInfo(data);
+        setShowWinnerNotification(true);
+        
+        // Auto-ocultar después de 10 segundos
+        setTimeout(() => {
+          setShowWinnerNotification(false);
+        }, 10000);
+
+        // Actualizar estadísticas
+        updateGameStats();
+      }
+    } catch (error) {
+      console.error('Error al procesar victoria:', error);
+    }
+  }, [currentGame, updateGame, updateGameStats]);
+
+  // Efecto único consolidado para todos los listeners de socket
+  useEffect(() => {
+    if (!socket) return;
+
+    // Handlers de conexión
+    const handleConnect = () => {
+      console.log('Socket conectado');
+      // Unirse a la sala del juego
+      if (currentGame?.id) {
+        socket.emit('joinGame', { gameId: currentGame.id });
+      }
+    };
+
+    const handleDisconnect = () => {
+      console.log('Socket desconectado');
+    };
+
+    const handleReconnect = () => {
+      console.log('Socket reconectado');
+      if (currentGame?.id) {
+        socket.emit('joinGame', { gameId: currentGame.id });
+      }
+    };
+
+    // Registrar todos los listeners
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('reconnect', handleReconnect);
+    socket.on('bingoWin', handleBingoWin);
+
+    // Si ya está conectado, unirse al juego
+    if (socket.connected && currentGame?.id) {
+      socket.emit('joinGame', { gameId: currentGame.id });
+    }
+
+    // Cleanup completo
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('reconnect', handleReconnect);
+      socket.off('bingoWin', handleBingoWin);
+    };
+  }, [socket, currentGame?.id, handleBingoWin]);
 
   // Variables derivadas
   const assignments = getAssignmentsByRaffle(currentRaffle);
@@ -223,31 +341,6 @@ const BingoGestorContent = () => {
     }
   }, [currentRaffle, getAssignmentsByRaffle, currentGame]);
 
-  const updateGameStats = () => {
-    const assignments = getAssignmentsByRaffle(currentRaffle);
-    const totalCardsGenerated = assignments.reduce((total, assignment) => {
-      // Validar que las propiedades existan y sean números válidos
-      const startCard = parseInt(assignment.startCard) || 0;
-      const endCard = parseInt(assignment.endCard) || 0;
-      const quantity = assignment.quantity || 0;
-      
-      // Si tiene quantity definido, usarlo; sino calcular del rango
-      if (quantity > 0) {
-        return total + quantity;
-      } else if (startCard > 0 && endCard > 0 && endCard >= startCard) {
-        return total + (endCard - startCard + 1);
-      } else {
-        return total + 1; // Al menos contar 1 cartón por asignación
-      }
-    }, 0) || 0;
-    
-    setGameStats({
-      totalCards: totalCardsGenerated,
-      activeCards: assignments.filter(a => a.paid).length,
-      winners: assignments.filter(a => a.winner).length
-    });
-  };
-
   // Funciones de manejo de asignaciones
   const handleFormSubmit = (formData) => {
     if (editingAssignment) {
@@ -278,6 +371,23 @@ const BingoGestorContent = () => {
       // Actualizar el juego local
       const updatedGame = getGameById(currentGame.id);
       setCurrentGame(updatedGame);
+      
+      // Después de 5.5 segundos (animación de 5s + 0.5s margen), verificar ganadores
+      setTimeout(() => {
+        const updatedCalledNumbers = updatedGame.calledNumbers || [];
+        const winners = checkForWinners(updatedCalledNumbers);
+        
+        if (winners.length > 0) {
+          console.log('¡Ganadores detectados automáticamente!', winners);
+          setAutoDetectedWinners(winners);
+          setShowAutoWinnersAlert(true);
+          
+          // Auto-ocultar después de 15 segundos
+          setTimeout(() => {
+            setShowAutoWinnersAlert(false);
+          }, 15000);
+        }
+      }, 5500);
     }
   };
 
@@ -315,9 +425,11 @@ const BingoGestorContent = () => {
     }
   };
 
-  const handleResetRaffle = () => {
+  const handleResetRaffle = useCallback(() => {
     if (window.confirm('¿Estás seguro de que quieres reiniciar el sorteo? Se borrarán todos los números cantados y se limpiarán los cartones de los jugadores.')) {
-      if (currentGame) {
+      if (!currentGame) return;
+
+      try {
         // Actualizar el juego en localStorage con calledNumbers vacío
         updateGame(currentGame.id, { 
           calledNumbers: [], 
@@ -326,21 +438,27 @@ const BingoGestorContent = () => {
         });
         
         // Actualizar el estado local
-        const updatedGame = {
-          ...currentGame,
+        setCurrentGame(prev => ({
+          ...prev,
           calledNumbers: [],
           currentNumber: null,
           winners: []
-        };
-        setCurrentGame(updatedGame);
+        }));
         
-        // Emitir evento por socket para notificar a todos los jugadores
-        // que el sorteo se ha reiniciado
-        if (socket) {
+        // Emitir evento por socket con acknowledgment
+        if (socket && socket.connected) {
           socket.emit('raffleReset', {
             gameId: currentGame.id,
             raffleNumber: currentRaffle
+          }, (ack) => {
+            if (ack && ack.success) {
+              console.log('Sorteo reiniciado exitosamente en servidor');
+            } else {
+              console.warn('Advertencia al reiniciar en servidor:', ack?.error);
+            }
           });
+        } else {
+          console.warn('Socket no conectado, el reinicio solo es local');
         }
 
         // Limpiar ganadores de las asignaciones del sorteo actual
@@ -353,9 +471,12 @@ const BingoGestorContent = () => {
         updateGameStats();
         
         console.log('Sorteo reiniciado - calledNumbers eliminados del localStorage');
+      } catch (error) {
+        console.error('Error al reiniciar sorteo:', error);
+        alert('Hubo un error al reiniciar el sorteo. Por favor, intenta nuevamente.');
       }
     }
-  };
+  }, [currentGame, currentRaffle, socket, updateGame, updateGameStats]);
 
   const handleLogout = () => {
     if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
@@ -387,6 +508,16 @@ const BingoGestorContent = () => {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-200 via-purple-100 to-pink-200 p-4">
+      {/* Indicador de estado de conexión */}
+      {socket && !socket.connected && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 bg-white rounded-full"></span>
+            Conexión perdida - Reconectando...
+          </div>
+        </div>
+      )}
+
       {/* Number Display sticky */}
       <div className="fixed top-4 left-4 z-50">
         <NumberDisplay 
@@ -394,6 +525,49 @@ const BingoGestorContent = () => {
           calledNumbers={currentGame?.calledNumbers || []}
         />
       </div>
+
+      {/* Alerta de Ganadores Detectados Automáticamente */}
+      {showAutoWinnersAlert && autoDetectedWinners.length > 0 && (
+        <div className="fixed top-20 right-4 z-50 bg-green-400 border-4 border-green-600 rounded-xl p-6 shadow-2xl max-w-md animate-pulse">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FontAwesomeIcon icon={faTrophy} className="text-5xl text-green-800" />
+                <div>
+                  <h3 className="text-2xl font-bold text-green-900">¡Posibles Ganadores!</h3>
+                  <p className="text-green-800 text-sm">Se detectaron {autoDetectedWinners.length} cartón(es) ganador(es)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAutoWinnersAlert(false)}
+                className="text-green-800 hover:text-green-900 text-xl"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+            
+            <div className="max-h-64 overflow-y-auto bg-white/50 rounded-lg p-3 space-y-2">
+              {autoDetectedWinners.map((winner, index) => (
+                <div key={index} className="bg-white rounded-lg p-3 border-2 border-green-500">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-green-900">{winner.participantName}</p>
+                      <p className="text-sm text-green-700">Cartón #{winner.cardNumber}</p>
+                      <p className="text-xs text-green-600">Patrón: {winner.pattern}</p>
+                    </div>
+                    <button
+                      onClick={() => handleMarkWinner(`${winner.assignmentId}-${winner.cardNumber}`, winner.assignmentId)}
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    >
+                      Confirmar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notificación de Ganador */}
       {showWinnerNotification && winnerInfo && (
@@ -767,15 +941,37 @@ const BingoGestorContent = () => {
                                 {assignment.participantName || 'Sin nombre'}
                               </div>
                               <div className="text-xs text-gray-500">
-                                ID: {assignment.id} | Sorteo: {assignment.raffleNumber}
+                                ID: {assignment.id}
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">
-                                {assignment.startCard} - {assignment.endCard}
-                                <span className="text-gray-500 ml-2">
-                                  ({assignment.quantity} cartones)
-                                </span>
+                                <div className="font-semibold mb-1">
+                                  Cartones #{assignment.startCard} - #{assignment.endCard}
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {assignment.quantity > 1 ? (
+                                    <div className="flex flex-wrap gap-1 max-w-xs">
+                                      {Array.from({ length: Math.min(assignment.quantity, 10) }, (_, i) => (
+                                        <span key={i} className="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                          #{assignment.startCard + i}
+                                        </span>
+                                      ))}
+                                      {assignment.quantity > 10 && (
+                                        <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 rounded">
+                                          +{assignment.quantity - 10} más
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                      #{assignment.startCard}
+                                    </span>
+                                  )}
+                                  <div className="mt-1 text-gray-500">
+                                    Total: {assignment.quantity} {assignment.quantity === 1 ? 'cartón' : 'cartones'}
+                                  </div>
+                                </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">

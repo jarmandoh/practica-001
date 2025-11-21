@@ -41,6 +41,29 @@
   margin: 0 auto;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border: 4px solid #fde047;
+  transition: transform 0.1s ease;
+}
+
+.number-display__ball--animating {
+  animation: ballSpin 0.1s ease-in-out infinite, ballPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes ballSpin {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
+}
+
+@keyframes ballPulse {
+  0% {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  100% {
+    box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.3), 0 10px 10px -5px rgba(124, 58, 237, 0.2);
+  }
 }
 
 .number-display__ball-number {
