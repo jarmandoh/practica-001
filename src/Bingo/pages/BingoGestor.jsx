@@ -11,7 +11,6 @@ import {
   faPlay,
   faPause,
   faClock,
-  faUsers,
   faCheckCircle,
   faPlus,
   faEdit,
@@ -55,13 +54,17 @@ const BingoGestorContent = () => {
   const [winnerInfo, setWinnerInfo] = useState(null);
   const [autoDetectedWinners, setAutoDetectedWinners] = useState([]);
   const [showAutoWinnersAlert, setShowAutoWinnersAlert] = useState(false);
+  const [showRaffleConfigModal, setShowRaffleConfigModal] = useState(false);
+  const [raffleConfig, setRaffleConfig] = useState({
+    winPattern: '',
+    prize: ''
+  });
 
   // Estados para manejo de asignaciones
   const [showForm, setShowForm] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
   const [viewMode, setViewMode] = useState('game');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showParticipantNames, setShowParticipantNames] = useState(false);
 
   useEffect(() => {
     document.title = 'Gestor | Bingo Game';
@@ -262,22 +265,6 @@ const BingoGestorContent = () => {
   // Verificar si se ha alcanzado el límite de cartones
   const maxCards = currentGame?.maxPlayers || 1200;
   const isCardLimitReached = totalCardsAssigned >= maxCards;
-  
-  // Generar lista de participantes a partir de las asignaciones
-  const participants = assignments.flatMap(assignment => {
-    const cards = [];
-    for (let i = assignment.startCard; i <= assignment.endCard; i++) {
-      cards.push({
-        id: `${assignment.id}-${i}`,
-        assignmentId: assignment.id,
-        participantName: assignment.participantName,
-        cardNumber: i,
-        paid: assignment.paid || false,
-        winner: assignment.winner || false
-      });
-    }
-    return cards;
-  }).filter(participant => showParticipantNames || participant.paid);
 
   useEffect(() => {
     if (gestor?.gameId) {
@@ -367,6 +354,14 @@ const BingoGestorContent = () => {
 
   const handleCallNumber = (number) => {
     if (currentGame) {
+      // Verificar si el sorteo está configurado
+      const raffleSettings = currentGame.raffleSettings?.[currentRaffle];
+      if (!raffleSettings?.winPattern || !raffleSettings?.prize) {
+        alert('Debes configurar el patrón de victoria y el premio antes de iniciar el sorteo');
+        setShowRaffleConfigModal(true);
+        return;
+      }
+      
       addCalledNumber(currentGame.id, number);
       // Actualizar el juego local
       const updatedGame = getGameById(currentGame.id);
@@ -423,6 +418,73 @@ const BingoGestorContent = () => {
       updateGame(currentGame.id, { status: 'active' });
       setCurrentGame({ ...currentGame, status: 'active' });
     }
+  };
+
+  const handleSaveRaffleConfig = () => {
+    if (!raffleConfig.winPattern) {
+      alert('Debes seleccionar un patrón de victoria');
+      return;
+    }
+    if (!raffleConfig.prize || raffleConfig.prize.trim() === '') {
+      alert('Debes ingresar un premio');
+      return;
+    }
+
+    // Guardar configuración del sorteo
+    const raffleSettings = currentGame.raffleSettings || {};
+    raffleSettings[currentRaffle] = {
+      winPattern: raffleConfig.winPattern,
+      prize: raffleConfig.prize,
+      configuredAt: new Date().toISOString()
+    };
+
+    // Actualizar winPatterns en settings para compatibilidad
+    const updatedSettings = {
+      ...currentGame.settings,
+      winPatterns: [raffleConfig.winPattern]
+    };
+
+    // Reiniciar el sorteo: borrar números cantados y ganadores
+    updateGame(currentGame.id, { 
+      raffleSettings,
+      settings: updatedSettings,
+      calledNumbers: [], 
+      currentNumber: null, 
+      winners: [],
+      status: 'active' // Activar el juego
+    });
+
+    // Actualizar estado local
+    setCurrentGame({ 
+      ...currentGame, 
+      raffleSettings,
+      settings: updatedSettings,
+      calledNumbers: [],
+      currentNumber: null,
+      winners: [],
+      status: 'active'
+    });
+
+    // Limpiar ganadores de las asignaciones del sorteo actual
+    const assignments = JSON.parse(localStorage.getItem('bingoAssignments') || '[]');
+    const updatedAssignments = assignments.map(a => 
+      a.raffleNumber === currentRaffle ? { ...a, winner: false } : a
+    );
+    localStorage.setItem('bingoAssignments', JSON.stringify(updatedAssignments));
+
+    // Emitir evento por socket para sincronizar con otros clientes
+    if (socket && socket.connected) {
+      socket.emit('raffleReset', {
+        gameId: currentGame.id,
+        raffleNumber: currentRaffle
+      });
+    }
+
+    // Actualizar estadísticas
+    updateGameStats();
+
+    // Cerrar modal
+    setShowRaffleConfigModal(false);
   };
 
   const handleResetRaffle = useCallback(() => {
@@ -596,10 +658,22 @@ const BingoGestorContent = () => {
           {/* Header */}
           <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 mb-6 shadow-lg">
             <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-700 mb-2">
-                  Gestor de Sorteos - {currentGame.name}
-                </h1>
+              <div className="flex-1">
+                <div className="mb-2">
+                  <h1 className="text-3xl font-bold text-gray-700">
+                    Gestor de Sorteos - {currentGame.name}
+                  </h1>
+                </div>
+                {currentGame.raffleSettings?.[currentRaffle] && (
+                  <div className="mb-2 flex items-center gap-4 text-sm">
+                    <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full">
+                      Patrón: {raffleConfig.winPattern || currentGame.raffleSettings[currentRaffle].winPattern}
+                    </span>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full">
+                      Premio: {currentGame.raffleSettings[currentRaffle].prize}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center space-x-4 text-gray-600">
                   <span className="flex items-center">
                     <FontAwesomeIcon icon={faUser} className="mr-2" />
@@ -625,6 +699,26 @@ const BingoGestorContent = () => {
                 </div>
               </div>
               <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    const raffleSettings = currentGame.raffleSettings?.[currentRaffle];
+                    setRaffleConfig({
+                      winPattern: raffleSettings?.winPattern || '',
+                      prize: raffleSettings?.prize || ''
+                    });
+                    setShowRaffleConfigModal(true);
+                  }}
+                  className={`px-4 py-2 rounded-lg transition-colors inline-flex items-center ${
+                    currentGame.raffleSettings?.[currentRaffle]?.winPattern
+                      ? 'bg-green-200 hover:bg-green-300 text-green-800'
+                      : 'bg-yellow-200 hover:bg-yellow-300 text-yellow-800 animate-pulse'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faTrophy} className="mr-2" />
+                  {currentGame.raffleSettings?.[currentRaffle]?.winPattern
+                    ? 'Configuración del Sorteo'
+                    : '⚠️ Configurar Sorteo'}
+                </button>
                 <Link 
                   to="/bingo" 
                   className="bg-blue-200 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-300 inline-flex items-center"
@@ -751,139 +845,173 @@ const BingoGestorContent = () => {
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             {/* Controles de Números */}
             <div className="bg-white rounded-xl shadow-2xl p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold text-gray-800">Control del Sorteo</h2>
-                <div className="flex gap-2">
-                  {currentGame.status === 'active' ? (
-                    <button
-                      onClick={handlePauseGame}
-                      className="bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-4 py-2 rounded-lg transition-colors"
-                    >
-                      <FontAwesomeIcon icon={faPause} className="mr-2" />
-                      Pausar
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleResumeGame}
-                      className="bg-green-200 hover:bg-green-300 text-green-800 px-4 py-2 rounded-lg transition-colors"
-                    >
-                      <FontAwesomeIcon icon={faPlay} className="mr-2" />
-                      Reanudar
-                    </button>
+              {currentGame.raffleSettings?.[currentRaffle]?.winPattern && currentGame.raffleSettings?.[currentRaffle]?.prize ? (
+                <>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-semibold text-gray-800">Control del Sorteo</h2>
+                    <div className="flex gap-2">
+                      {currentGame.status === 'active' ? (
+                        <button
+                          onClick={handlePauseGame}
+                          className="bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-4 py-2 rounded-lg transition-colors"
+                        >
+                          <FontAwesomeIcon icon={faPause} className="mr-2" />
+                          Pausar
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleResumeGame}
+                          className="bg-green-200 hover:bg-green-300 text-green-800 px-4 py-2 rounded-lg transition-colors"
+                        >
+                          <FontAwesomeIcon icon={faPlay} className="mr-2" />
+                          Reanudar
+                        </button>
+                      )}
+                      <button
+                        onClick={handleResetRaffle}
+                        className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition-colors"
+                        title="Reiniciar sorteo (borrar números cantados)"
+                      >
+                        <FontAwesomeIcon icon={faRedo} className="mr-2" />
+                        Reiniciar
+                      </button>
+                    </div>
+                  </div>
+                  {currentGame.status === 'active' && (
+                    <BingoControls 
+                      onCallNumber={handleCallNumber}
+                      calledNumbers={currentGame.calledNumbers || []}
+                      currentRaffle={currentRaffle}
+                      gameId={currentGame.id}
+                    />
                   )}
+                  {currentGame.status === 'waiting' && (
+                    <div className="text-center py-8">
+                      <FontAwesomeIcon icon={faPause} className="text-6xl text-gray-300 mb-4" />
+                      <p className="text-gray-500">El sorteo está pausado</p>
+                      <p className="text-sm text-gray-400">Haz clic en "Reanudar" para continuar</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <FontAwesomeIcon icon={faTrophy} className="text-6xl text-yellow-400 mb-4 animate-pulse" />
+                  <h3 className="text-2xl font-bold text-gray-700 mb-3">Configuración Requerida</h3>
+                  <p className="text-gray-600 mb-2">Debes configurar el patrón de victoria y el premio</p>
+                  <p className="text-sm text-gray-500 mb-6">antes de poder iniciar el sorteo</p>
                   <button
-                    onClick={handleResetRaffle}
-                    className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition-colors"
-                    title="Reiniciar sorteo (borrar números cantados)"
+                    onClick={() => {
+                      const raffleSettings = currentGame.raffleSettings?.[currentRaffle];
+                      setRaffleConfig({
+                        winPattern: raffleSettings?.winPattern || '',
+                        prize: raffleSettings?.prize || ''
+                      });
+                      setShowRaffleConfigModal(true);
+                    }}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-6 py-3 rounded-lg transition-colors font-semibold inline-flex items-center"
                   >
-                    <FontAwesomeIcon icon={faRedo} className="mr-2" />
-                    Reiniciar
+                    <FontAwesomeIcon icon={faTrophy} className="mr-2" />
+                    Configurar Ahora
                   </button>
-                </div>
-              </div>
-              {currentGame.status === 'active' && (
-                <BingoControls 
-                  onCallNumber={handleCallNumber}
-                  calledNumbers={currentGame.calledNumbers || []}
-                  currentRaffle={currentRaffle}
-                  gameId={currentGame.id}
-                />
-              )}
-              {currentGame.status === 'waiting' && (
-                <div className="text-center py-8">
-                  <FontAwesomeIcon icon={faPause} className="text-6xl text-gray-300 mb-4" />
-                  <p className="text-gray-500">El sorteo está pausado</p>
-                  <p className="text-sm text-gray-400">Haz clic en "Reanudar" para continuar</p>
                 </div>
               )}
             </div>
 
-            {/* Lista de Participantes */}
+            {/* Grilla de Balotas */}
             <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
               <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-semibold text-gray-800">
-                    Participantes ({participants.length})
-                  </h2>
-                  <button
-                    onClick={() => setShowParticipantNames(!showParticipantNames)}
-                    className={`px-4 py-2 rounded-lg transition-colors text-sm ${
-                      showParticipantNames 
-                        ? 'bg-blue-300 hover:bg-blue-400 text-blue-800' 
-                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={faUser} className="mr-2" />
-                    {showParticipantNames ? 'Ocultar Nombres' : 'Mostrar Nombres'}
-                  </button>
-                </div>
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  Tablero de Balotas
+                </h2>
                 <p className="text-sm text-gray-500 mt-2">
-                  {showParticipantNames 
-                    ? 'Mostrando todos los participantes'
-                    : 'Mostrando solo participantes con cartones pagados'
-                  }
+                  {(currentGame.calledNumbers || []).length} de 75 balotas cantadas
                 </p>
               </div>
-              <div className="max-h-96 overflow-y-auto">
-                {participants.length > 0 ? (
-                  <div className="divide-y divide-gray-200">
-                    {participants.map((participant) => (
-                      <div key={participant.id} className="p-4 hover:bg-gray-50">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {showParticipantNames 
-                                ? participant.participantName 
-                                : `Participante #${participant.cardNumber}`
-                              }
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Cartón #{participant.cardNumber}
-                              {participant.paid && (
-                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-200 text-green-800">
-                                  <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
-                                  Pagado
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {participant.winner ? (
-                              <span className="bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">
-                                <FontAwesomeIcon icon={faTrophy} className="mr-1" />
-                                Ganador
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => handleMarkWinner(participant.id, participant.assignmentId)}
-                                className="bg-green-300 hover:bg-green-400 text-green-800 px-3 py-1 rounded-full text-xs transition-colors"
-                              >
-                                <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
-                                Marcar Ganador
-                              </button>
-                            )}
-                          </div>
-                        </div>
+              <div className="p-6">
+                <div className="grid grid-cols-5 gap-4 mb-4">
+                  {['B', 'I', 'N', 'G', 'O'].map((letter) => (
+                    <div key={letter} className="text-center font-bold text-2xl text-purple-700">
+                      {letter}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {/* Columna B (1-15) */}
+                  <div className="space-y-2">
+                    {Array.from({ length: 15 }, (_, i) => i + 1).map((num) => (
+                      <div
+                        key={num}
+                        className={`aspect-square rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
+                          (currentGame.calledNumbers || []).includes(num)
+                            ? 'bg-green-200 text-green-800 shadow-md scale-105'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {num}
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <FontAwesomeIcon icon={faUsers} className="text-6xl text-gray-300 mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                      {showParticipantNames 
-                        ? 'No hay participantes registrados'
-                        : 'No hay participantes con cartones pagados'
-                      }
-                    </h3>
-                    <p className="text-gray-500">
-                      {showParticipantNames 
-                        ? 'Los participantes aparecerán aquí cuando se asignen cartones'
-                        : 'Marca cartones como pagados en la gestión de asignaciones'
-                      }
-                    </p>
+                  {/* Columna I (16-30) */}
+                  <div className="space-y-2">
+                    {Array.from({ length: 15 }, (_, i) => i + 16).map((num) => (
+                      <div
+                        key={num}
+                        className={`aspect-square rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
+                          (currentGame.calledNumbers || []).includes(num)
+                            ? 'bg-blue-200 text-blue-800 shadow-md scale-105'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {num}
+                      </div>
+                    ))}
                   </div>
-                )}
+                  {/* Columna N (31-45) */}
+                  <div className="space-y-2">
+                    {Array.from({ length: 15 }, (_, i) => i + 31).map((num) => (
+                      <div
+                        key={num}
+                        className={`aspect-square rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
+                          (currentGame.calledNumbers || []).includes(num)
+                            ? 'bg-red-200 text-red-800 shadow-md scale-105'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {num}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Columna G (46-60) */}
+                  <div className="space-y-2">
+                    {Array.from({ length: 15 }, (_, i) => i + 46).map((num) => (
+                      <div
+                        key={num}
+                        className={`aspect-square rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
+                          (currentGame.calledNumbers || []).includes(num)
+                            ? 'bg-yellow-200 text-yellow-800 shadow-md scale-105'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {num}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Columna O (61-75) */}
+                  <div className="space-y-2">
+                    {Array.from({ length: 15 }, (_, i) => i + 61).map((num) => (
+                      <div
+                        key={num}
+                        className={`aspect-square rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
+                          (currentGame.calledNumbers || []).includes(num)
+                            ? 'bg-purple-200 text-purple-800 shadow-md scale-105'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {num}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1095,6 +1223,160 @@ const BingoGestorContent = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Modal de Configuración del Sorteo */}
+          {showRaffleConfigModal && (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                      <FontAwesomeIcon icon={faTrophy} className="mr-2 text-yellow-500" />
+                      Configurar Sorteo {currentRaffle}
+                    </h2>
+                    <button
+                      onClick={() => setShowRaffleConfigModal(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <FontAwesomeIcon icon={faTimes} className="text-xl" />
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Selecciona el patrón de victoria y define el premio antes de iniciar el sorteo
+                  </p>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {/* Selección de Patrón */}
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-4">
+                      Patrón de Victoria *
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { value: 'horizontalLine1', name: 'Línea 1', icon: '▬', desc: 'Primera fila' },
+                        { value: 'horizontalLine2', name: 'Línea 2', icon: '▬', desc: 'Segunda fila' },
+                        { value: 'horizontalLine3', name: 'Línea 3', icon: '▬', desc: 'Tercera fila' },
+                        { value: 'horizontalLine4', name: 'Línea 4', icon: '▬', desc: 'Cuarta fila' },
+                        { value: 'horizontalLine5', name: 'Línea 5', icon: '▬', desc: 'Quinta fila' },
+                        { value: 'letterI1', name: 'B (Col 1)', icon: '|', desc: 'Columna B' },
+                        { value: 'letterI2', name: 'I (Col 2)', icon: '|', desc: 'Columna I' },
+                        { value: 'letterI3', name: 'N (Col 3)', icon: '|', desc: 'Columna N' },
+                        { value: 'letterI4', name: 'G (Col 4)', icon: '|', desc: 'Columna G' },
+                        { value: 'letterI5', name: 'O (Col 5)', icon: '|', desc: 'Columna O' },
+                        { value: 'diagonal', name: 'Diagonal', icon: '⧹', desc: 'Cualquier diagonal' },
+                        { value: 'fourCorners', name: '4 Esquinas', icon: '◸', desc: 'Las 4 esquinas' },
+                        { value: 'letterX', name: 'Letra X', icon: '✗', desc: 'Ambas diagonales' },
+                        { value: 'letterT', name: 'Letra T', icon: '⊤', desc: 'Fila 1 + Col 3' },
+                        { value: 'letterL', name: 'Letra L', icon: '⅃', desc: 'Col 1 + Fila 5' },
+                        { value: 'cross', name: 'Cruz', icon: '✛', desc: 'Fila 3 + Col 3' },
+                        { value: 'fullCard', name: 'Cartón Lleno', icon: '⬛', desc: 'Todo el cartón' }
+                      ].map((pattern) => (
+                        <button
+                          key={pattern.value}
+                          type="button"
+                          onClick={() => setRaffleConfig({ ...raffleConfig, winPattern: pattern.value })}
+                          className={`p-4 rounded-lg border-2 transition-all hover:shadow-md ${
+                            raffleConfig.winPattern === pattern.value
+                              ? 'border-purple-500 bg-purple-50 shadow-lg ring-2 ring-purple-300'
+                              : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="text-3xl text-center mb-2">{pattern.icon}</div>
+                          <div className="text-sm font-bold text-gray-800 text-center">{pattern.name}</div>
+                          <div className="text-xs text-gray-500 text-center mt-1">{pattern.desc}</div>
+                          {raffleConfig.winPattern === pattern.value && (
+                            <div className="mt-2 text-center">
+                              <FontAwesomeIcon icon={faCheckCircle} className="text-purple-600 text-lg" />
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Premio */}
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">
+                      Premio del Sorteo *
+                    </label>
+                    <input
+                      type="text"
+                      value={raffleConfig.prize}
+                      onChange={(e) => setRaffleConfig({ ...raffleConfig, prize: e.target.value })}
+                      placeholder="Ej: $100,000 | TV 50 pulgadas | Viaje a Cartagena"
+                      className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Describe el premio que ganará el participante</p>
+                  </div>
+
+                  {/* Vista previa */}
+                  {raffleConfig.winPattern && raffleConfig.prize && (
+                    <div className="bg-linear-to-r from-purple-50 to-blue-50 border-2 border-purple-300 rounded-xl p-5">
+                      <h4 className="font-bold text-purple-900 mb-3 flex items-center text-lg">
+                        <FontAwesomeIcon icon={faTrophy} className="mr-2 text-yellow-500" />
+                        Vista Previa de la Configuración
+                      </h4>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-3 border border-purple-200">
+                          <p className="text-sm text-gray-600 mb-1">Patrón de Victoria:</p>
+                          <p className="font-bold text-purple-900">
+                            {[
+                              { value: 'horizontalLine1', label: 'Línea Horizontal 1' },
+                              { value: 'horizontalLine2', label: 'Línea Horizontal 2' },
+                              { value: 'horizontalLine3', label: 'Línea Horizontal 3' },
+                              { value: 'horizontalLine4', label: 'Línea Horizontal 4' },
+                              { value: 'horizontalLine5', label: 'Línea Horizontal 5' },
+                              { value: 'letterI1', label: 'Columna 1 (B)' },
+                              { value: 'letterI2', label: 'Columna 2 (I)' },
+                              { value: 'letterI3', label: 'Columna 3 (N)' },
+                              { value: 'letterI4', label: 'Columna 4 (G)' },
+                              { value: 'letterI5', label: 'Columna 5 (O)' },
+                              { value: 'diagonal', label: 'Diagonal' },
+                              { value: 'fourCorners', label: '4 Esquinas' },
+                              { value: 'letterX', label: 'Letra X' },
+                              { value: 'letterT', label: 'Letra T' },
+                              { value: 'letterL', label: 'Letra L' },
+                              { value: 'cross', label: 'Cruz' },
+                              { value: 'fullCard', label: 'Cartón Lleno' }
+                            ].find(p => p.value === raffleConfig.winPattern)?.label}
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-green-200">
+                          <p className="text-sm text-gray-600 mb-1">Premio:</p>
+                          <p className="font-bold text-green-900">{raffleConfig.prize}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Botones */}
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowRaffleConfigModal(false)}
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors font-semibold"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveRaffleConfig}
+                      disabled={!raffleConfig.winPattern || !raffleConfig.prize}
+                      className={`flex-1 px-6 py-3 rounded-lg transition-colors font-semibold ${
+                        raffleConfig.winPattern && raffleConfig.prize
+                          ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
+                      Guardar Configuración
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

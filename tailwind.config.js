@@ -2,12 +2,12 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx,html}",
   ],
   darkMode: 'class',
   theme: {
     extend: {
-      colors: {
+      /* colors: {
         primary: "#2563eb",
         secondary: "#00ff95",
         dark: "#171717",
@@ -21,7 +21,7 @@ export default {
       },
       gridTemplateColumns: {
         '15': 'repeat(15, minmax(0, 1fr))',
-      },
+      }, */
     },
   },
   plugins: [],

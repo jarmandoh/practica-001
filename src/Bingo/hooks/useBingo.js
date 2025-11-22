@@ -115,11 +115,13 @@ export const useBingo = (gameId = null, initialCalledNumbers = []) => {
         const newCalledNumbers = [...prev, nextNum];
         
         // Emitir evento por socket con los números actualizados
+        // El evento se emite inmediatamente para iniciar la animación
         if (socket) {
           socket.emit('numberDrawn', {
             number: nextNum,
             calledNumbers: newCalledNumbers,
-            raffleNumber: raffleNumber
+            raffleNumber: raffleNumber,
+            timestamp: Date.now()
           });
         }
         

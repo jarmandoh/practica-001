@@ -30,11 +30,129 @@ const BingoPlayerContent = () => {
   const [currentGame, setCurrentGame] = useState(null);
   const [playerCard, setPlayerCard] = useState(null);
   const [gameNotFound, setGameNotFound] = useState(false);
-  const [currentNumber, setCurrentNumber] = useState(null);
   const [calledNumbers, setCalledNumbers] = useState([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [winnerData, setWinnerData] = useState(null);
+
+  // Sorteo actual y configuración (patrón y premio) si existe
+  const currentRaffle = currentGame?.currentRaffle || 1;
+  const raffleSettings = currentGame?.raffleSettings?.[currentRaffle];
+
+  // Mapeo de patrones para mostrar etiqueta legible
+  const patternLabel = (pattern) => {
+    if (!pattern) return '';
+    const map = [
+      { value: 'horizontalLine1', label: 'Línea Horizontal 1' },
+      { value: 'horizontalLine2', label: 'Línea Horizontal 2' },
+      { value: 'horizontalLine3', label: 'Línea Horizontal 3' },
+      { value: 'horizontalLine4', label: 'Línea Horizontal 4' },
+      { value: 'horizontalLine5', label: 'Línea Horizontal 5' },
+      { value: 'letterI1', label: 'Columna 1 (B)' },
+      { value: 'letterI2', label: 'Columna 2 (I)' },
+      { value: 'letterI3', label: 'Columna 3 (N)' },
+      { value: 'letterI4', label: 'Columna 4 (G)' },
+      { value: 'letterI5', label: 'Columna 5 (O)' },
+      { value: 'diagonal', label: 'Diagonal' },
+      { value: 'fourCorners', label: '4 Esquinas' },
+      { value: 'letterX', label: 'Letra X' },
+      { value: 'letterT', label: 'Letra T' },
+      { value: 'letterL', label: 'Letra L' },
+      { value: 'cross', label: 'Cruz (Centro + Fila y Columna centrales)' },
+      { value: 'fullCard', label: 'Cartón Lleno' }
+    ];
+    return map.find(p => p.value === pattern)?.label || pattern;
+  };
+
+  // Función para obtener celdas marcadas según el patrón
+  const getPatternCells = (pattern) => {
+    const cells = new Set();
+    if (!pattern) return cells;
+    
+    // Todas las celdas: 0-24 (grid 5x5)
+    // Centro es siempre libre (posición 12)
+    cells.add(12);
+    
+    switch (pattern) {
+      case 'horizontalLine1':
+        for (let i = 0; i < 5; i++) cells.add(i);
+        break;
+      case 'horizontalLine2':
+        for (let i = 5; i < 10; i++) cells.add(i);
+        break;
+      case 'horizontalLine3':
+        for (let i = 10; i < 15; i++) cells.add(i);
+        break;
+      case 'horizontalLine4':
+        for (let i = 15; i < 20; i++) cells.add(i);
+        break;
+      case 'horizontalLine5':
+        for (let i = 20; i < 25; i++) cells.add(i);
+        break;
+      case 'letterI1':
+        for (let i = 0; i < 25; i += 5) cells.add(i);
+        break;
+      case 'letterI2':
+        for (let i = 1; i < 25; i += 5) cells.add(i);
+        break;
+      case 'letterI3':
+        for (let i = 2; i < 25; i += 5) cells.add(i);
+        break;
+      case 'letterI4':
+        for (let i = 3; i < 25; i += 5) cells.add(i);
+        break;
+      case 'letterI5':
+        for (let i = 4; i < 25; i += 5) cells.add(i);
+        break;
+      case 'diagonal':
+        cells.add(0); cells.add(6); cells.add(12); cells.add(18); cells.add(24);
+        break;
+      case 'fourCorners':
+        cells.add(0); cells.add(4); cells.add(20); cells.add(24);
+        break;
+      case 'letterX':
+        cells.add(0); cells.add(6); cells.add(12); cells.add(18); cells.add(24);
+        cells.add(4); cells.add(8); cells.add(16); cells.add(20);
+        break;
+      case 'letterT':
+        for (let i = 0; i < 5; i++) cells.add(i);
+        cells.add(2); cells.add(7); cells.add(12); cells.add(17); cells.add(22);
+        break;
+      case 'letterL':
+        cells.add(0); cells.add(5); cells.add(10); cells.add(15); cells.add(20);
+        for (let i = 20; i < 25; i++) cells.add(i);
+        break;
+      case 'cross':
+        cells.add(2); cells.add(7); cells.add(12); cells.add(17); cells.add(22);
+        cells.add(10); cells.add(11); cells.add(13); cells.add(14);
+        break;
+      case 'fullCard':
+        for (let i = 0; i < 25; i++) cells.add(i);
+        break;
+      default:
+        break;
+    }
+    return cells;
+  };
+
+  // Componente para la mini vista previa
+  const PatternPreview = ({ pattern }) => {
+    const cells = getPatternCells(pattern);
+    return (
+      <div className="grid grid-cols-5 gap-1">
+        {Array.from({ length: 25 }, (_, i) => (
+          <div
+            key={i}
+            className={`w-4 h-4 rounded-sm ${
+              cells.has(i)
+                ? 'bg-purple-400'
+                : 'bg-gray-200'
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
 
   useEffect(() => {
     document.title = 'Jugador | Bingo Game';
@@ -81,7 +199,6 @@ const BingoPlayerContent = () => {
         setGameNotFound(false);
         // Sincronizar calledNumbers y currentNumber con el juego
         setCalledNumbers(game.calledNumbers || []);
-        setCurrentNumber(game.currentNumber || null);
       } else {
         setGameNotFound(true);
       }
@@ -92,7 +209,6 @@ const BingoPlayerContent = () => {
   useEffect(() => {
     if (currentGame) {
       setCalledNumbers(currentGame.calledNumbers || []);
-      setCurrentNumber(currentGame.currentNumber || null);
     }
   }, [currentGame]);
 
@@ -116,7 +232,7 @@ const BingoPlayerContent = () => {
     try {
       const playerRaffle = currentGame?.currentRaffle || 1;
       if (data.raffleNumber === playerRaffle) {
-        setCurrentNumber(data.number);
+        
         setCalledNumbers(data.calledNumbers || []);
         
         setCurrentGame(prev => ({
@@ -131,7 +247,7 @@ const BingoPlayerContent = () => {
           if (updatedGame) {
             setCurrentGame(updatedGame);
             setCalledNumbers(updatedGame.calledNumbers || []);
-            setCurrentNumber(updatedGame.currentNumber || null);
+            
           }
         }
       }
@@ -145,7 +261,7 @@ const BingoPlayerContent = () => {
     try {
       const playerRaffle = currentGame?.currentRaffle || 1;
       if (data.raffleNumber === playerRaffle) {
-        setCurrentNumber(null);
+
         setCalledNumbers([]);
         
         setCurrentGame(prev => ({
@@ -160,7 +276,6 @@ const BingoPlayerContent = () => {
           if (updatedGame) {
             setCurrentGame(updatedGame);
             setCalledNumbers(updatedGame.calledNumbers || []);
-            setCurrentNumber(updatedGame.currentNumber || null);
           }
         }
       }
@@ -270,7 +385,7 @@ const BingoPlayerContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-200 via-teal-100 to-blue-200 p-4">
+    <div className="min-h-screen align-middle w-full bg-linear-to-br from-green-200 via-teal-100 to-blue-200 p-4">
       {/* Indicador de estado de conexión */}
       {socket && !socket.connected && (
         <div className="fixed top-20 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
@@ -298,32 +413,113 @@ const BingoPlayerContent = () => {
         />
       )}
 
-      {/* Number Display sticky */}
-      <div className="fixed top-4 left-4 z-50">
-        <NumberDisplay 
-          currentNumber={currentNumber || currentGame?.currentNumber}
-          calledNumbers={calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])}
-        />
-      </div>
-
-      <div className="max-w-6xl mx-auto ml-72">
+      <div className="max-w-6xl ml-0 lg:ml-72">
         {/* Header */}
         <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 mb-6 shadow-lg">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-700 mb-2">
-                {currentGame?.name || 'Bingo Game'}
-              </h1>
-              <div className="flex items-center space-x-4 text-gray-600">
+          
+            {/* Sección Izquierda: Título */}
+            <div className="flex flex-col md:flex-row bg-red-600 w-full lg:w-auto p-4 rounded-lg text-white items-center justify-center gap-3">
+              <div className="flex flex-col md:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <h1 className="text-3xl font-bold text-gray-700">
+                  {currentGame?.name || 'Bingo Game'}
+                </h1>
+                {/* Botones en mobile/tablet */}
+                <div className="flex gap-2 lg:hidden">
+                  <Link 
+                    to="/bingo" 
+                    className="bg-blue-200 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-300 inline-flex items-center text-sm"
+                  >
+                    <FontAwesomeIcon icon={faHome} className="mr-2" />
+                    Inicio
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center text-sm"
+                  >
+                    <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+                    Salir
+                  </button>
+                </div>
+              </div>
+
+              {/* Información del Jugador - Mobile y Tablet */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 text-sm text-gray-600 lg:hidden">
                 <span className="flex items-center">
-                  <FontAwesomeIcon icon={faUser} className="mr-2" />
+                  <FontAwesomeIcon icon={faUser} className="mr-2 text-gray-700" />
                   {player?.name}
                 </span>
                 <span className="flex items-center">
-                  <FontAwesomeIcon icon={faGamepad} className="mr-2" />
+                  <FontAwesomeIcon icon={faGamepad} className="mr-2 text-gray-700" />
                   Cartón #{player?.cardNumber || 'Asignando...'}
                 </span>
-                <span className={`flex items-center px-3 py-1 rounded-full text-sm ${
+                <span className={`flex items-center px-3 py-1 rounded-full text-xs font-medium col-span-2 sm:col-span-1 ${
+                  currentGame?.status === 'active' 
+                    ? 'bg-green-200 text-green-800' 
+                    : currentGame?.status === 'waiting'
+                    ? 'bg-yellow-200 text-yellow-800'
+                    : 'bg-gray-200 text-gray-800'
+                }`}>
+                  {currentGame?.status === 'active' && '🟢 En Juego'}
+                  {currentGame?.status === 'waiting' && '⏳ Esperando'}
+                  {currentGame?.status === 'finished' && '🏁 Finalizado'}
+                </span>
+              </div>
+
+              {/* Badges de configuración del sorteo si existen */}
+              {raffleSettings?.winPattern && raffleSettings?.prize && (
+                <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+                  {/* Badge con tooltip de vista previa */}
+                  <div className="group relative">
+                    {/* <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full cursor-help">
+                      Patrón: {patternLabel(raffleSettings.winPattern)}
+                    </span> */}
+                    <PatternPreview pattern={raffleSettings.winPattern} />
+                    {/* <div className="hidden group-hover:block absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg p-3 whitespace-nowrap z-50 shadow-lg">
+                      <div className="mb-2 font-semibold">Vista Previa:</div>
+                      <PatternPreview pattern={raffleSettings.winPattern} />
+                    </div> */}
+                  </div>
+                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full">
+                    Premio: {raffleSettings.prize}
+                  </span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                    Sorteo {currentRaffle}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Sección Derecha: Desktop Only */}
+            <div className="hidden lg:flex lg:flex-col lg:items-end lg:gap-4">
+              {/* Botones en Desktop */}
+              <div className="flex gap-3">
+                <Link 
+                  to="/bingo" 
+                  className="bg-blue-200 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-300 inline-flex items-center"
+                >
+                  <FontAwesomeIcon icon={faHome} className="mr-2" />
+                  Inicio
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
+                >
+                  <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+                  Salir
+                </button>
+              </div>
+
+              {/* Información del Jugador - Desktop */}
+              <div className="flex flex-col items-end gap-2 text-sm text-gray-600">
+                <span className="flex items-center">
+                  <FontAwesomeIcon icon={faUser} className="mr-2 text-gray-700" />
+                  {player?.name}
+                </span>
+                <span className="flex items-center">
+                  <FontAwesomeIcon icon={faGamepad} className="mr-2 text-gray-700" />
+                  Cartón #{player?.cardNumber || 'Asignando...'}
+                </span>
+                <span className={`flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                   currentGame?.status === 'active' 
                     ? 'bg-green-200 text-green-800' 
                     : currentGame?.status === 'waiting'
@@ -336,23 +532,7 @@ const BingoPlayerContent = () => {
                 </span>
               </div>
             </div>
-            <div className="flex gap-3">
-              <Link 
-                to="/bingo" 
-                className="bg-blue-200 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-300 inline-flex items-center"
-              >
-                <FontAwesomeIcon icon={faHome} className="mr-2" />
-                Inicio
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded-lg transition duration-300 inline-flex items-center"
-              >
-                <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
-                Salir
-              </button>
-            </div>
-          </div>
+          
         </div>
 
         {/* Game Content */}
@@ -380,33 +560,26 @@ const BingoPlayerContent = () => {
             <h2 className="text-2xl font-bold text-gray-700 mb-6">Información del Juego</h2>
             
             <div className="space-y-4">
-              {/* Game Status */}
+              {/* Configuración del Sorteo */}
               <div className="bg-white/40 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-700 mb-2">Estado del Juego</h3>
-                <p className="text-gray-600">
-                  {currentGame?.status === 'waiting' && 'Esperando que inicie el juego...'}
-                  {currentGame?.status === 'active' && 'Juego en progreso'}
-                  {currentGame?.status === 'finished' && 'Juego finalizado'}
-                </p>
-              </div>
-
-              {/* Game Progress */}
-              <div className="bg-white/40 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-700 mb-2">Progreso</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Números cantados:</span>
-                    <span>{(calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])).length}/75</span>
+                <h3 className="font-semibold text-gray-700 mb-2 flex items-center">
+                  <FontAwesomeIcon icon={faTrophy} className="mr-2" />
+                  Configuración del Sorteo {currentRaffle}
+                </h3>
+                {raffleSettings?.winPattern && raffleSettings?.prize ? (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-purple-200 text-purple-800 text-sm font-medium">
+                      Patrón: {patternLabel(raffleSettings.winPattern)}
+                    </span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-200 text-green-800 text-sm font-medium">
+                      Premio: {raffleSettings.prize}
+                    </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-300 h-2 rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${(((calledNumbers.length > 0 ? calledNumbers : (currentGame?.calledNumbers || [])).length) / 75) * 100}%` 
-                      }}
-                    ></div>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    Esperando configuración del gestor (patrón y premio) antes de iniciar.
+                  </p>
+                )}
               </div>
 
               {/* Winners */}
