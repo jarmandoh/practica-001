@@ -5,16 +5,17 @@ import { useBingo } from '../../hooks/useBingo';
 import './BingoControls.css';
 
 const BingoControls = ({ onCallNumber, calledNumbers, currentRaffle, gameId }) => {
-  const { drawNumber, getNextNumber } = useBingo(gameId, calledNumbers);
+  const { drawNumber } = useBingo(gameId, calledNumbers);
   const canDraw = calledNumbers.length < 75;
 
   const handleDrawNumber = () => {
     if (canDraw) {
-      drawNumber(currentRaffle || 1);
-      // Si se proporciona callback, llamarlo con el número
-      const nextNum = getNextNumber();
-      if (nextNum && onCallNumber) {
-        onCallNumber(nextNum);
+      // Sacar el número (drawNumber ahora devuelve el número sacado)
+      const drawnNumber = drawNumber(currentRaffle || 1);
+      
+      // Si se proporcionó callback, llamarlo con el número exacto que se sacó
+      if (drawnNumber && onCallNumber) {
+        onCallNumber(drawnNumber);
       }
     }
   };

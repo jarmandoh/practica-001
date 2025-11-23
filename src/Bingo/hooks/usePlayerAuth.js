@@ -36,6 +36,8 @@ export const usePlayerAuth = () => {
       name: playerData.name,
       gameId: playerData.gameId,
       cardNumber: playerData.cardNumber || null,
+      winPattern: playerData.winPattern || null,
+      winningNumbers: playerData.winningNumbers || [],
       joinedAt: new Date().toISOString()
     };
     
@@ -49,6 +51,14 @@ export const usePlayerAuth = () => {
   const updatePlayerCard = (cardNumber) => {
     if (player) {
       const updatedPlayer = { ...player, cardNumber };
+      localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(updatedPlayer));
+      setPlayer(updatedPlayer);
+    }
+  };
+
+  const updatePlayerPattern = (winPattern, winningNumbers) => {
+    if (player) {
+      const updatedPlayer = { ...player, winPattern, winningNumbers };
       localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(updatedPlayer));
       setPlayer(updatedPlayer);
     }
@@ -77,6 +87,7 @@ export const usePlayerAuth = () => {
     currentGame,
     loginPlayer,
     updatePlayerCard,
+    updatePlayerPattern,
     logoutPlayer,
     switchGame
   };

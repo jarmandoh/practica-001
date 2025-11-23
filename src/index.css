@@ -55,3 +55,37 @@ html {
 .slide-up {
   animation: slideUp 0.3s ease-out forwards;
 }
+
+/* Animaciones para números de bingo */
+@keyframes slideDownNumber {
+  0% {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.5);
+  }
+  60% {
+    transform: translateY(5px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideToSecondRow {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDownNumber 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-slideToSecondRow {
+  animation: slideToSecondRow 0.5s ease-out forwards;
+}

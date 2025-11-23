@@ -128,7 +128,11 @@ export const useBingo = (gameId = null, initialCalledNumbers = []) => {
         return newCalledNumbers;
       });
       setIsGameActive(true);
+      
+      // Devolver el número sacado para que el componente pueda usarlo
+      return nextNum;
     }
+    return null;
   }, [getNextNumber, socket]);
 
   // Actualizar ganadores cuando cambien los números cantados

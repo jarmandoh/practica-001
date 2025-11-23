@@ -11,35 +11,114 @@ const WinnerModal = ({ winnerCards, onClose }) => {
   const currentWinner = winnerCards[currentWinnerIndex];
 
   const getPatternDescription = (pattern) => {
-    switch (pattern.type) {
-      case 'row':
-        return `Fila ${pattern.position + 1}`;
-      case 'column': {
-        const columns = ['B', 'I', 'N', 'G', 'O'];
-        return `Columna ${columns[pattern.position]}`;
-      }
-      case 'diagonal':
-        return pattern.position === 'main' ? 'Diagonal Principal' : 'Diagonal Secundaria';
-      default:
-        return 'Patrón Ganador';
+    // Si pattern es un string, devolver el label correspondiente
+    if (typeof pattern === 'string') {
+      const patternLabels = {
+        'horizontalLine1': 'Línea Horizontal 1',
+        'horizontalLine2': 'Línea Horizontal 2',
+        'horizontalLine3': 'Línea Horizontal 3',
+        'horizontalLine4': 'Línea Horizontal 4',
+        'horizontalLine5': 'Línea Horizontal 5',
+        'letterI1': 'Columna B',
+        'letterI2': 'Columna I',
+        'letterI3': 'Columna N',
+        'letterI4': 'Columna G',
+        'letterI5': 'Columna O',
+        'diagonal': 'Diagonal',
+        'fourCorners': '4 Esquinas',
+        'letterX': 'Letra X',
+        'letterT': 'Letra T',
+        'letterL': 'Letra L',
+        'cross': 'Cruz',
+        'fullCard': 'Cartón Lleno',
+        'manual': 'Manual'
+      };
+      return patternLabels[pattern] || pattern;
     }
+    
+    // Si pattern es un objeto (sistema antiguo)
+    if (pattern && pattern.type) {
+      switch (pattern.type) {
+        case 'row':
+          return `Fila ${pattern.position + 1}`;
+        case 'column': {
+          const columns = ['B', 'I', 'N', 'G', 'O'];
+          return `Columna ${columns[pattern.position]}`;
+        }
+        case 'diagonal':
+          return pattern.position === 'main' ? 'Diagonal Principal' : 'Diagonal Secundaria';
+        default:
+          return 'Patrón Ganador';
+      }
+    }
+    
+    return 'Patrón Ganador';
   };
 
   const isWinningCell = (rowIndex, colIndex, pattern) => {
-    switch (pattern.type) {
-      case 'row':
-        return rowIndex === pattern.position;
-      case 'column':
-        return colIndex === pattern.position;
-      case 'diagonal':
-        if (pattern.position === 'main') {
+    // Si pattern es un string, calcular las celdas ganadoras
+    if (typeof pattern === 'string') {
+      const cellIndex = rowIndex * 5 + colIndex;
+      
+      switch (pattern) {
+        case 'horizontalLine1':
+          return rowIndex === 0;
+        case 'horizontalLine2':
+          return rowIndex === 1;
+        case 'horizontalLine3':
+          return rowIndex === 2;
+        case 'horizontalLine4':
+          return rowIndex === 3;
+        case 'horizontalLine5':
+          return rowIndex === 4;
+        case 'letterI1':
+          return colIndex === 0;
+        case 'letterI2':
+          return colIndex === 1;
+        case 'letterI3':
+          return colIndex === 2;
+        case 'letterI4':
+          return colIndex === 3;
+        case 'letterI5':
+          return colIndex === 4;
+        case 'diagonal':
           return rowIndex === colIndex;
-        } else {
-          return rowIndex === (4 - colIndex);
-        }
-      default:
-        return false;
+        case 'fourCorners':
+          return [0, 4, 20, 24].includes(cellIndex);
+        case 'letterX':
+          return rowIndex === colIndex || rowIndex === (4 - colIndex);
+        case 'letterT':
+          return rowIndex === 0 || (colIndex === 2 && rowIndex > 0);
+        case 'letterL':
+          return colIndex === 0 || rowIndex === 4;
+        case 'cross':
+          return rowIndex === 2 || colIndex === 2;
+        case 'fullCard':
+          return true;
+        default:
+          return false;
+      }
     }
+    
+    // Si pattern es un objeto (sistema antiguo)
+    if (pattern && pattern.type) {
+      switch (pattern.type) {
+        case 'row':
+          return rowIndex === pattern.position;
+        case 'column':
+          return colIndex === pattern.position;
+        case 'diagonal':
+          if (pattern.position === 'main') {
+            return rowIndex === colIndex;
+          } else {
+            return rowIndex === (4 - colIndex);
+          }
+        default:
+          return false;
+      }
+    }
+    
+    return false;
   };
 
   const nextWinner = () => {
@@ -118,18 +197,23 @@ const WinnerModal = ({ winnerCards, onClose }) => {
           <div className="winner-modal__bingo-card">
             {/* Headers de columnas */}
             <div className="winner-modal__columns">
-              {['B', 'I', 'N', 'G', 'O'].map((letter, index) => (
-                <div
-                  key={letter}
-                  className={`winner-modal__column-header ${
-                    currentWinner.winPattern.type === 'column' && currentWinner.winPattern.position === index
-                      ? 'winner-modal__column-header--winning'
-                      : ''
-                  }`}
-                >
-                  {letter}
-                </div>
-              ))}
+              {['B', 'I', 'N', 'G', 'O'].map((letter, index) => {
+                const pattern = currentWinner.winPattern;
+                const isWinningColumn = 
+                  (typeof pattern === 'string' && pattern === `letterI${index + 1}`) ||
+                  (pattern && pattern.type === 'column' && pattern.position === index);
+                
+                return (
+                  <div
+                    key={letter}
+                    className={`winner-modal__column-header ${
+                      isWinningColumn ? 'winner-modal__column-header--winning' : ''
+                    }`}
+                  >
+                    {letter}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Grid del cartón */}
