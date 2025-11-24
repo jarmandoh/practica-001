@@ -574,7 +574,7 @@ const BingoPlayerContent = () => {
             <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50 bg-gray-900/95 p-8 flex items-center justify-center' : ''}`}>
               {isFullscreen && (
                 <button
-                  onClick={() => setIsFullscreen(false)}
+                  onClick={() => setIsFullscreen(true)}
                   className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all"
                 >
                   ✕ Cerrar

@@ -215,7 +215,7 @@ const BingoCard = ({ card, calledNumbers: initialCalledNumbers, playerName, card
     };
     
     // Mostrar alerta al jugador
-    alert(`🎉 ¡BINGO! 🎉\n\n¡Felicidades ${playerName || 'Jugador'}!\nHas completado el patrón de victoria.\n\nCartón #${cardNumber}\nPatrón: ${patternLabels[winPattern] || winPattern || 'Manual'}`);
+    // alert(`🎉 ¡BINGO! 🎉\n\n¡Felicidades ${playerName || 'Jugador'}!\nHas completado el patrón de victoria.\n\nCartón #${cardNumber}\nPatrón: ${patternLabels[winPattern] || winPattern || 'Manual'}`);
     
     // Emitir evento de victoria por socket
     if (socket && gameId) {
