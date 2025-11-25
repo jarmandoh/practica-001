@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome, 
@@ -13,6 +13,7 @@ import { useGameManager } from '../../hooks/useGameManager';
 import './GestorLogin.css';
 
 const GestorLogin = () => {
+  const navigate = useNavigate();
   const { loginGestor } = useGestorAuth();
   const { games } = useGameManager();
   const [formData, setFormData] = useState({
@@ -49,11 +50,14 @@ const GestorLogin = () => {
         throw new Error('Ingresa tu nombre');
       }
 
-      await loginGestor(formData.gameId, formData.password.trim(), formData.gestorName.trim());
-      // La redirección se manejará por el componente padre
+      const result = await loginGestor(formData.gameId, formData.password.trim(), formData.gestorName.trim());
+      console.log('Login exitoso:', result);
+      
+      // Forzar recarga de la página para que el componente padre detecte el cambio
+      window.location.reload();
     } catch (err) {
+      console.error('Error en login:', err);
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };

@@ -543,6 +543,8 @@ const BingoGestorContent = () => {
   const handleLogout = () => {
     if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
       logoutGestor();
+      // Forzar recarga para que el componente padre detecte el cambio
+      window.location.reload();
     }
   };
 

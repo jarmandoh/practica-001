@@ -30,37 +30,53 @@ export const useGestorAuth = () => {
   }, []);
 
   const loginGestor = (gameId, password, gestorName) => {
-    // Obtener el juego para verificar la contraseña
-    const games = JSON.parse(localStorage.getItem('bingoGames') || '[]');
-    const game = games.find(g => g.id === gameId);
-    
-    if (!game) {
-      throw new Error('Juego no encontrado');
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        // Obtener el juego para verificar la contraseña
+        const games = JSON.parse(localStorage.getItem('bingoGames') || '[]');
+        const game = games.find(g => g.id === gameId);
+        
+        if (!game) {
+          reject(new Error('Juego no encontrado'));
+          return;
+        }
 
-    if (!game.gestorPassword) {
-      throw new Error('Este juego no tiene contraseña de gestor configurada');
-    }
+        if (!game.gestorPassword) {
+          reject(new Error('Este juego no tiene contraseña de gestor configurada'));
+          return;
+        }
 
-    if (game.gestorPassword !== password) {
-      throw new Error('Contraseña incorrecta');
-    }
+        if (game.gestorPassword !== password) {
+          reject(new Error('Contraseña incorrecta'));
+          return;
+        }
 
-    // Crear sesión de gestor
-    const gestorSession = {
-      id: Date.now(),
-      name: gestorName,
-      gameId: gameId,
-      gameName: game.name,
-      loginTime: new Date().toISOString(),
-      expiresAt: new Date().getTime() + (24 * 60 * 60 * 1000) // 24 horas
-    };
+        // Crear sesión de gestor
+        const gestorSession = {
+          id: Date.now(),
+          name: gestorName,
+          gameId: gameId,
+          gameName: game.name,
+          loginTime: new Date().toISOString(),
+          expiresAt: new Date().getTime() + (24 * 60 * 60 * 1000) // 24 horas
+        };
 
-    localStorage.setItem('gestorSession', JSON.stringify(gestorSession));
-    setGestor(gestorSession);
-    setIsAuthenticated(true);
-
-    return gestorSession;
+        localStorage.setItem('gestorSession', JSON.stringify(gestorSession));
+        
+        // Actualizar estados de manera sincrónica
+        setGestor(gestorSession);
+        setIsAuthenticated(true);
+        
+        console.log('Sesión de gestor creada:', gestorSession);
+        
+        // Resolver después de actualizar el estado
+        setTimeout(() => {
+          resolve(gestorSession);
+        }, 0);
+      } catch (error) {
+        reject(error);
+      }
+    });
   };
 
   const logoutGestor = () => {
