@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import Projects from './pages/Projects'
 import Skills from './pages/Skills'
 import Contact from './pages/Contact'
+import PoliticaDatos from './pages/PoliticaDatos'
 import { 
   BingoLanding, 
   BingoCardViewer, 
@@ -31,6 +32,7 @@ function App() {
                   <Route path="/proyectos" element={<Projects />} />
                   <Route path="/habilidades" element={<Skills />} />
                   <Route path="/contacto" element={<Contact />} />
+                  <Route path="/politica" element={<PoliticaDatos />} />
                 </Routes>
               </main>
               <Footer />
