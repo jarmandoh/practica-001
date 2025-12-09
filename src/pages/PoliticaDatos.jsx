@@ -416,7 +416,7 @@ export default function PoliticaDatos() {
           </section>
 
           {/* Footer */}
-          <section className="bg-linear-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-lg -mx-8 mb-[-2rem]">
+          <section className="bg-linear-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-lg -mx-8 -mb-8">
             <div className="text-center">
               <p className="mb-2">Para más información o consultas sobre esta política:</p>
               <p className="font-semibold mb-1">📧 datospersonales@empresa.com</p>

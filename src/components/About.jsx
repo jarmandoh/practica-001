@@ -7,10 +7,10 @@ const About = () => {
         <h2 className="text-4xl font-bold text-center mb-12">Acerca de Mí</h2>
         <div className="text-lg leading-relaxed text-gray-600 space-y-4">
           <p>
-            Soy un desarrollador Fullstack con 5 años de experiencia, especializado en el ecosistema JavaScript. Mi enfoque principal es crear aplicaciones robustas, de alto rendimiento y fáciles de mantener. Disfruto navegando entre el Frontend, donde priorizo la experiencia de usuario y la estética, y el Backend, donde aseguro la lógica de negocio y la eficiencia de las bases de datos.
+            Soy un desarrollador Fullstack con mas de 8 años de experiencia, especializado en el ecosistema JavaScript. Mi enfoque principal es crear aplicaciones robustas, de alto rendimiento y fáciles de mantener. Disfruto navegando entre el Frontend, donde priorizo la experiencia de usuario y la estética, y el Backend, donde aseguro la lógica de negocio y la eficiencia de las bases de datos.
           </p>
           <p>
-            En el Frontend, me desempeño con <span className="font-semibold text-indigo-500">React y Next.js</span>, utilizando herramientas modernas como Tailwind CSS para el diseño rápido y responsivo. En el Backend, mi herramienta preferida es <span className="font-semibold text-indigo-500">Node.js (Express o NestJS)</span>, complementado con bases de datos SQL (PostgreSQL) y NoSQL (MongoDB).
+            En el Frontend, me desempeño con <span className="font-semibold text-indigo-500">React y Angular</span>, utilizando herramientas modernas como Bootstrap y Tailwind para el diseño rápido y responsivo. En el Backend, mi herramienta preferida es <span className="font-semibold text-indigo-500">Node.js (Express o NestJS)</span>, complementado con bases de datos SQL (PostgreSQL) y NoSQL (MongoDB).
           </p>
           <p>
             Siempre estoy buscando aprender y aplicar las últimas tendencias tecnológicas para entregar soluciones que realmente resuelvan problemas. ¡Echa un vistazo a mis proyectos a continuación!

@@ -14,6 +14,7 @@ import {
   ProtectedBingoPlayer,
   ProtectedBingoGestor
 } from './Bingo';
+import { SigloGame, SigloMultiplayer } from './Siglo';
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
@@ -46,6 +47,10 @@ function App() {
           <Route path="/bingo/player" element={<ProtectedBingoPlayer />} />
           <Route path="/bingo/cartones" element={<BingoCardsList />} />
           <Route path="/bingo/carton/:cardId" element={<BingoCardViewer />} />
+          
+          {/* Rutas independientes del Juego del Siglo */}
+          <Route path="/siglo" element={<SigloGame />} />
+          <Route path="/siglo/multijugador" element={<SigloMultiplayer />} />
         </Routes>
       </div>
     </Router>
