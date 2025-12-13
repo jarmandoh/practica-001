@@ -1,9 +1,0 @@
-usando sockets:
--crear una pagina que funciona como una sala de juego
--cualquier jugador puede crear una sala con un id unico.
--lo jugadores se pueden unir a cualquier sala
-- el creador de la sala puede aceptar o rechazar a jugadores que se quieran unir
--los jugadores pueden ver solamente su puntaje
--el creador de la sala envia una verificación a todo los jugadores con un valor de apuesta inicial
--para poder iniciar el juego todos los jugadores deben aceptar la apuesta inicial
--despues de aceptar la apuesta inicial, 

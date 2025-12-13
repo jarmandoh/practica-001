@@ -14,9 +14,15 @@ import {
   ProtectedBingoPlayer,
   ProtectedBingoGestor
 } from './Bingo';
-import { SigloGame, SigloMultiplayer } from './Siglo';
 import './App.css'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { 
+  FichasLanding, 
+  ProtectedFichasAdmin, 
+  ProtectedFichasGestor, 
+  ProtectedFichasPlayer,
+  FichasSocketProvider 
+} from './Fichas'
 
 function App() {
   return (
@@ -49,8 +55,18 @@ function App() {
           <Route path="/bingo/carton/:cardId" element={<BingoCardViewer />} />
           
           {/* Rutas independientes del Juego del Siglo */}
-          <Route path="/siglo" element={<SigloGame />} />
-          <Route path="/siglo/multijugador" element={<SigloMultiplayer />} />
+          {/* <Route path="/siglo" element={<SigloGame />} />
+          <Route path="/siglo/multijugador" element={<SigloMultiplayer />} /> */}
+          {/* Rutas con vistas individuales por jugador */}
+          {/* <Route path="/siglo/admin" element={<GameStateProvider><SigloAdmin /></GameStateProvider>} />
+          <Route path="/siglo/seleccionar" element={<GameStateProvider><SigloPlayerSelect /></GameStateProvider>} />
+          <Route path="/siglo/jugador/:playerId" element={<GameStateProvider><SigloPlayerView /></GameStateProvider>} /> */}
+          
+          {/* Rutas independientes del Juego de Fichas */}
+          <Route path="/fichas" element={<FichasLanding />} />
+          <Route path="/fichas/player" element={<FichasSocketProvider><ProtectedFichasPlayer /></FichasSocketProvider>} />
+          <Route path="/fichas/admin" element={<FichasSocketProvider><ProtectedFichasAdmin /></FichasSocketProvider>} />
+          <Route path="/fichas/gestor" element={<FichasSocketProvider><ProtectedFichasGestor /></FichasSocketProvider>} />
         </Routes>
       </div>
     </Router>

@@ -1,0 +1,53 @@
+.gestor-login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+  padding: 20px;
+}
+
+.gestor-login-card {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 100%;
+}
+
+.gestor-icon {
+  font-size: 60px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.gestor-login-card h2 {
+  margin: 0 0 10px 0;
+  color: #333;
+  text-align: center;
+}
+
+.gestor-login-card .subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.btn-gestor {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-gestor:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(19, 78, 94, 0.4);
+}

@@ -12,6 +12,14 @@ const ProjectsSection = () => {
       isInternal: true
     },
     {
+      title: 'Juego del Siglo - Multijugador',
+      description:
+        'Juego de apuestas estilo póker con vistas individuales para cada jugador. Sistema de sincronización en tiempo real, vista de administrador y privacidad total entre jugadores.',
+      tags: ['React', 'BroadcastChannel', 'Context API', 'LocalStorage'],
+      demoUrl: '/siglo/admin',
+      isInternal: true
+    },
+    {
       title: 'Plataforma de E-Learning',
       description:
         'Sistema completo para la gestión de cursos online, usuarios y progreso. Incluye pasarela de pago y foros de discusión en tiempo real.',
