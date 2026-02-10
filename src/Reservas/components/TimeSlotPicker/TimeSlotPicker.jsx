@@ -1,0 +1,159 @@
+import React from 'react';
+
+const TimeSlotPicker = ({
+  slots = [],
+  selectedSlot = null,
+  onSelectSlot,
+  showPrices = true,
+  disabled = false,
+  loading = false
+}) => {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-yellow-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (slots.length === 0) {
+    return (
+      <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
+        <span className="text-5xl mb-4 block">📅</span>
+        <p className="text-gray-500 dark:text-gray-400">
+          No hay horarios disponibles para esta fecha
+        </p>
+      </div>
+    );
+  }
+
+  // Agrupar slots por categoría (mañana, tarde, noche)
+  const groupedSlots = {
+    morning: slots.filter(s => {
+      const hour = parseInt(s.startTime.split(':')[0]);
+      return hour >= 6 && hour < 12;
+    }),
+    afternoon: slots.filter(s => {
+      const hour = parseInt(s.startTime.split(':')[0]);
+      return hour >= 12 && hour < 18;
+    }),
+    night: slots.filter(s => {
+      const hour = parseInt(s.startTime.split(':')[0]);
+      return hour >= 18;
+    })
+  };
+
+  const renderSlotGroup = (title, icon, slots, bgColor) => {
+    if (slots.length === 0) return null;
+
+    return (
+      <div className="mb-6">
+        <div className={`flex items-center gap-2 mb-3 px-3 py-2 ${bgColor} rounded-lg`}>
+          <span className="text-xl">{icon}</span>
+          <h4 className="font-semibold text-gray-700 dark:text-gray-200">{title}</h4>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            ({slots.filter(s => s.isAvailable).length} disponibles)
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {slots.map((slot, index) => {
+            const isSelected = selectedSlot?.startTime === slot.startTime;
+            const isAvailable = slot.isAvailable;
+
+            return (
+              <button
+                key={index}
+                onClick={() => isAvailable && !disabled && onSelectSlot?.(slot)}
+                disabled={!isAvailable || disabled}
+                className={`
+                  relative p-3 rounded-xl border-2 transition-all duration-200
+                  ${isSelected 
+                    ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30 ring-2 ring-yellow-500/30' 
+                    : isAvailable
+                      ? 'border-gray-200 dark:border-gray-600 hover:border-yellow-300 dark:hover:border-yellow-700 bg-white dark:bg-gray-800'
+                      : 'border-gray-100 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/50 cursor-not-allowed'
+                  }
+                `}
+              >
+                {/* Time */}
+                <div className={`text-sm font-bold ${
+                  isSelected 
+                    ? 'text-blue-700 dark:text-yellow-400' 
+                    : isAvailable 
+                      ? 'text-gray-900 dark:text-white' 
+                      : 'text-gray-400 dark:text-gray-500'
+                }`}>
+                  {slot.startTime}
+                </div>
+                <div className={`text-xs ${
+                  isAvailable ? 'text-gray-500 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'
+                }`}>
+                  a {slot.endTime}
+                </div>
+
+                {/* Price */}
+                {showPrices && slot.formattedPrice && (
+                  <div className={`mt-2 text-sm font-semibold ${
+                    isSelected 
+                      ? 'text-blue-700 dark:text-yellow-400' 
+                      : isAvailable 
+                        ? 'text-gray-700 dark:text-gray-300' 
+                        : 'text-gray-400 dark:text-gray-500 line-through'
+                  }`}>
+                    {slot.formattedPrice}
+                  </div>
+                )}
+
+                {/* Status indicator */}
+                {!isAvailable && (
+                  <div className="absolute top-1 right-1">
+                    <span className="text-xs bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full">
+                      Ocupado
+                    </span>
+                  </div>
+                )}
+
+                {/* Selected checkmark */}
+                {isSelected && (
+                  <div className="absolute top-1 right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {/* Legend */}
+      <div className="flex items-center gap-4 mb-4 text-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded border-2 border-gray-200 bg-white"></div>
+          <span className="text-gray-600 dark:text-gray-400">Disponible</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded border-2 border-yellow-500 bg-yellow-50"></div>
+          <span className="text-gray-600 dark:text-gray-400">Seleccionado</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded border-2 border-gray-100 bg-gray-100"></div>
+          <span className="text-gray-600 dark:text-gray-400">Ocupado</span>
+        </div>
+      </div>
+
+      {/* Slot Groups */}
+      {renderSlotGroup('Mañana', '🌅', groupedSlots.morning, 'bg-orange-50 dark:bg-orange-900/20')}
+      {renderSlotGroup('Tarde', '☀️', groupedSlots.afternoon, 'bg-yellow-50 dark:bg-yellow-900/20')}
+      {renderSlotGroup('Noche', '🌙', groupedSlots.night, 'bg-indigo-50 dark:bg-indigo-900/20')}
+    </div>
+  );
+};
+
+export default TimeSlotPicker;

@@ -1,10 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './FichasLanding.css';
+import WelcomeAnimation from '../components/WelcomeAnimation';
 
 const FichasLanding = () => {
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+
+  useEffect(() => {
+    // Verificar si el usuario ya vio la animación en esta sesión
+    const welcomeSeen = sessionStorage.getItem('fichas_welcome_seen');
+    if (welcomeSeen) {
+      setShowWelcome(false);
+      setHasSeenWelcome(true);
+    }
+  }, []);
+
+  const handleWelcomeComplete = () => {
+    setShowWelcome(false);
+    setHasSeenWelcome(true);
+    // Guardar en sessionStorage para no mostrar de nuevo en esta sesión
+    sessionStorage.setItem('fichas_welcome_seen', 'true');
+  };
+
   return (
-    <div className="fichas-landing">
+    <>
+      {showWelcome && !hasSeenWelcome && (
+        <WelcomeAnimation onComplete={handleWelcomeComplete} />
+      )}
+      <div className="fichas-landing">
       <div className="landing-content">
         <div className="hero-section">
           <h1>🎲 Juego de Fichas a 100</h1>
@@ -71,6 +95,7 @@ const FichasLanding = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

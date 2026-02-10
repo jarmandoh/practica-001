@@ -4,6 +4,7 @@ import { useDarkMode } from '../hooks/useDarkMode';
 
 import React, { useEffect } from 'react';
 import ProjectsSection from '../components/ProjectsSection';
+import { Link } from 'react-router-dom';
 
 function Projects() {
   useEffect(() => {
@@ -14,20 +15,44 @@ function Projects() {
   const projects = [
     {
       id: 1,
+      title: 'Sistema de Reservas de Canchas',
+      description: 'Plataforma completa para reservar canchas sintéticas de fútbol 5, 8 y 11 con panel de administración.',
+      image: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=400&h=300&fit=crop',
+      tags: ['React', 'Context API', 'Tailwind CSS', 'LocalStorage'],
+      link: '/reservas'
+    },
+    {
+      id: 2,
+      title: 'Bingo Virtual',
+      description: 'Sistema de bingo virtual con gestión de cartones, sorteos en vivo y múltiples roles de usuario.',
+      image: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400&h=300&fit=crop',
+      tags: ['React', 'Socket.io', 'Tailwind CSS'],
+      link: '/bingo'
+    },
+    {
+      id: 3,
+      title: 'Juego de Fichas',
+      description: 'Juego multijugador en tiempo real con sistema de salas y gestores.',
+      image: 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=400&h=300&fit=crop',
+      tags: ['React', 'Socket.io', 'Node.js'],
+      link: '/fichas'
+    },
+    {
+      id: 4,
       title: 'E-commerce Platform',
       description: 'Plataforma de comercio electrónico con carrito de compras y pasarela de pagos.',
       image: 'https://via.placeholder.com/400x300',
       tags: ['React', 'Node.js', 'MongoDB', 'Stripe'],
     },
     {
-      id: 2,
+      id: 5,
       title: 'Task Manager',
       description: 'Aplicación de gestión de tareas con características colaborativas.',
       image: 'https://via.placeholder.com/400x300',
       tags: ['React', 'Firebase', 'Tailwind CSS'],
     },
     {
-      id: 3,
+      id: 6,
       title: 'Social Media Dashboard',
       description: 'Dashboard para análisis de redes sociales con gráficos en tiempo real.',
       image: 'https://via.placeholder.com/400x300',
@@ -82,13 +107,26 @@ function Projects() {
                   ))}
                 </div>
                 <div className="mt-6">
-                  <button className={`w-full py-2 rounded-lg font-medium transition-colors ${
-                    isDark
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}>
-                    Ver Detalles
-                  </button>
+                  {project.link ? (
+                    <Link
+                      to={project.link}
+                      className={`block w-full py-2 rounded-lg font-medium transition-colors text-center ${
+                        isDark
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                    >
+                      Ver Proyecto
+                    </Link>
+                  ) : (
+                    <button className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                      isDark
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}>
+                      Ver Detalles
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

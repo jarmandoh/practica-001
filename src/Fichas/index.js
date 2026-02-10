@@ -6,3 +6,4 @@ export { default as ProtectedFichasPlayer } from './pages/ProtectedFichasPlayer'
 export { default as ProtectedFichasAdmin } from './pages/ProtectedFichasAdmin';
 export { default as ProtectedFichasGestor } from './pages/ProtectedFichasGestor';
 export { FichasSocketProvider } from './context/SocketContext';
+export { default as WelcomeAnimation } from './components/WelcomeAnimation';

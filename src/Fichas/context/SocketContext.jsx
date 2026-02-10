@@ -1,6 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { SocketContext } from './SocketContext.js';
+
+export const SocketContext = createContext(null);
+
+export const useFichasSocket = () => {
+  const context = useContext(SocketContext);
+  if (!context) {
+    throw new Error('useFichasSocket debe usarse dentro de FichasSocketProvider');
+  }
+  return context;
+};
 
 export const FichasSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);

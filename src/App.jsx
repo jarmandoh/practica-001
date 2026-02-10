@@ -23,6 +23,12 @@ import {
   ProtectedFichasPlayer,
   FichasSocketProvider 
 } from './Fichas'
+import {
+  ReservasProvider,
+  ReservasLanding,
+  ReservasCanchas,
+  ProtectedReservasAdmin
+} from './Reservas'
 
 function App() {
   return (
@@ -67,6 +73,11 @@ function App() {
           <Route path="/fichas/player" element={<FichasSocketProvider><ProtectedFichasPlayer /></FichasSocketProvider>} />
           <Route path="/fichas/admin" element={<FichasSocketProvider><ProtectedFichasAdmin /></FichasSocketProvider>} />
           <Route path="/fichas/gestor" element={<FichasSocketProvider><ProtectedFichasGestor /></FichasSocketProvider>} />
+          
+          {/* Rutas independientes del Sistema de Reservas de Canchas */}
+          <Route path="/reservas" element={<ReservasProvider><ReservasLanding /></ReservasProvider>} />
+          <Route path="/reservas/canchas" element={<ReservasProvider><ReservasCanchas /></ReservasProvider>} />
+          <Route path="/reservas/admin" element={<ReservasProvider><ProtectedReservasAdmin /></ReservasProvider>} />
         </Routes>
       </div>
     </Router>

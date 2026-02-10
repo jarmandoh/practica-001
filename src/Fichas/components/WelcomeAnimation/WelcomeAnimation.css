@@ -1,0 +1,896 @@
+.welcome-animation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+/* Partículas de fondo */
+.welcome-animation-overlay::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 30%);
+  animation: ambientGlow 4s ease-in-out infinite alternate;
+}
+
+.welcome-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Contenedor del personaje */
+.character-container {
+  animation: slideInFromLeft 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.3));
+}
+
+.welcome-animation-overlay.exit .character-container {
+  animation: slideOutToLeft 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+}
+
+.character {
+  position: relative;
+  animation: breathe 3s cubic-bezier(0.4, 0, 0.6, 1) infinite, 
+             subtleSway 4s ease-in-out infinite;
+}
+
+/* Cabeza */
+.head {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  animation: headTilt 5s ease-in-out infinite;
+}
+
+.hair {
+  position: absolute;
+  width: 120px;
+  height: 80px;
+  background: linear-gradient(135deg, #8b4513 0%, #654321 50%, #5a3825 100%);
+  border-radius: 60px 60px 30px 30px;
+  top: 0;
+  z-index: 1;
+  animation: hairFlow 3s ease-in-out infinite;
+  box-shadow: inset 0 -10px 20px rgba(0, 0, 0, 0.2),
+              0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.hair::before {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 60px;
+  background: linear-gradient(180deg, #654321 0%, #5a3825 100%);
+  border-radius: 0 50px 50px 0;
+  right: -10px;
+  top: 20px;
+  transform: rotate(-10deg);
+  animation: hairStrandRight 2.5s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.hair::after {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 60px;
+  background: linear-gradient(180deg, #654321 0%, #5a3825 100%);
+  border-radius: 50px 0 0 50px;
+  left: -10px;
+  top: 20px;
+  transform: rotate(10deg);
+  animation: hairStrandLeft 2.5s ease-in-out infinite 0.2s;
+  transform-origin: top center;
+}
+
+.face {
+  position: absolute;
+  width: 90px;
+  height: 100px;
+  background: linear-gradient(180deg, #ffd1b3 0%, #ffcca6 50%, #ffb38a 100%);
+  border-radius: 45px;
+  top: 20px;
+  left: 15px;
+  z-index: 2;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15),
+              inset 0 -5px 15px rgba(255, 179, 138, 0.5),
+              inset 5px 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Mejillas sonrojadas */
+.face::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 10px;
+  background: radial-gradient(ellipse, rgba(255, 150, 150, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  top: 50px;
+  left: 8px;
+  animation: blushPulse 2s ease-in-out infinite;
+}
+
+.face::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 10px;
+  background: radial-gradient(ellipse, rgba(255, 150, 150, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  top: 50px;
+  right: 8px;
+  animation: blushPulse 2s ease-in-out infinite 0.5s;
+}
+
+/* Ojos */
+.eyes {
+  position: absolute;
+  width: 100%;
+  top: 35px;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 20px;
+  z-index: 3;
+}
+
+.eye {
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle at 40% 40%, #4a6fa5 0%, #2c3e50 60%, #1a252f 100%);
+  border-radius: 50%;
+  position: relative;
+  animation: eyeMovement 6s ease-in-out infinite, realisticBlink 4s infinite;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
+              0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.eye::before {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 3px;
+  animation: eyeSparkle 2s ease-in-out infinite;
+}
+
+.eye::after {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  top: 5px;
+  left: 8px;
+}
+
+/* Cejas */
+.eye.left::before {
+  box-shadow: -2px -8px 0 2px #654321;
+}
+
+.eye.right::before {
+  box-shadow: 2px -8px 0 2px #654321;
+}
+
+/* Nariz */
+.nose {
+  position: absolute;
+  width: 8px;
+  height: 10px;
+  background: linear-gradient(135deg, #ffb38a 0%, #ffa07a 100%);
+  border-radius: 4px 4px 6px 6px;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Boca */
+.mouth {
+  position: absolute;
+  width: 28px;
+  height: 14px;
+  background: linear-gradient(180deg, #d64541 0%, #c83f3c 100%);
+  border-radius: 0 0 20px 20px;
+  top: 65px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: talk 0.3s ease-in-out infinite, mouthExpression 2s ease-in-out infinite;
+  z-index: 3;
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.3),
+              0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Dientes */
+.mouth::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 4px;
+  background: white;
+  border-radius: 0 0 3px 3px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Lengua */
+.mouth::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 8px;
+  background: #ff6b6b;
+  border-radius: 50%;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Cuerpo */
+.body {
+  position: relative;
+  width: 100px;
+  height: 140px;
+  margin: 0 auto;
+  animation: bodyBreath 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.dress {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff5a8a 30%, #c83f82 70%, #a8306a 100%);
+  border-radius: 0 0 50px 50px;
+  position: relative;
+  box-shadow: 0 8px 25px rgba(200, 63, 130, 0.4),
+              inset 0 -15px 30px rgba(0, 0, 0, 0.15),
+              inset 5px 0 15px rgba(255, 255, 255, 0.2);
+  animation: dressFlow 2s ease-in-out infinite;
+}
+
+.dress::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%);
+  border-radius: 50%;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.5);
+  animation: buttonShine 2s ease-in-out infinite;
+}
+
+.dress::after {
+  content: '';
+  position: absolute;
+  width: 110px;
+  height: 30px;
+  background: linear-gradient(135deg, #ff6b9d 0%, #c83f82 100%);
+  border-radius: 50%;
+  top: -5px;
+  left: -5px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Brazos */
+.arm {
+  position: absolute;
+  width: 16px;
+  height: 60px;
+  background: linear-gradient(90deg, #ffd1b3 0%, #ffcca6 50%, #ffc299 100%);
+  border-radius: 8px;
+  top: 10px;
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.arm.left {
+  left: -16px;
+  transform-origin: top center;
+  animation: waveLeftRealistic 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.arm.right {
+  right: -16px;
+  transform-origin: top center;
+  animation: waveRightRealistic 2s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.5s;
+}
+
+.hand {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, #ffd1b3 0%, #ffcca6 100%);
+  border-radius: 50%;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Dedos de la mano */
+.hand::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  background: #ffd1b3;
+  border-radius: 2px;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Mensaje de bienvenida */
+.welcome-message {
+  animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+}
+
+.welcome-animation-overlay.exit .welcome-message {
+  animation: fadeOutDown 0.5s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+}
+
+.speech-bubble {
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 2rem 2.5rem;
+  border-radius: 25px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25),
+              0 5px 15px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 1);
+  position: relative;
+  text-align: center;
+  max-width: 400px;
+  animation: bubbleFloat 3s ease-in-out infinite;
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-bottom: 22px solid white;
+  filter: drop-shadow(0 -3px 3px rgba(0, 0, 0, 0.1));
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.5), transparent);
+  z-index: -1;
+  animation: borderGlow 2s ease-in-out infinite alternate;
+}
+
+.speech-bubble h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.5rem 0;
+  animation: textShimmer 3s ease-in-out infinite, textPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 1s both;
+}
+
+.speech-bubble p {
+  font-size: 1.2rem;
+  color: #555;
+  margin: 0;
+  animation: textFadeIn 0.6s ease-out 1.2s both;
+}
+
+.sparkles {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.sparkle {
+  font-size: 1.5rem;
+  animation: sparkleRealistic 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+}
+
+.sparkle:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.sparkle:nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+/* Elementos decorativos */
+.decorative-elements {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.chip {
+  position: absolute;
+  font-size: 3rem;
+  animation: floatRealistic 4s ease-in-out infinite;
+  opacity: 0.9;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+}
+
+.chip-1 {
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+  animation-duration: 4.5s;
+}
+
+.chip-2 {
+  top: 20%;
+  right: 15%;
+  animation-delay: 0.7s;
+  animation-duration: 5s;
+}
+
+.chip-3 {
+  bottom: 20%;
+  left: 15%;
+  animation-delay: 1.4s;
+  animation-duration: 4.2s;
+}
+
+.chip-4 {
+  bottom: 15%;
+  right: 10%;
+  animation-delay: 2.1s;
+  animation-duration: 4.8s;
+}
+
+.chip-5 {
+  top: 50%;
+  left: 5%;
+  animation-delay: 2.8s;
+  animation-duration: 5.5s;
+}
+
+/* Animaciones */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes ambientGlow {
+  0% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-120vw) rotate(-15deg) scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(30px) rotate(5deg) scale(1.05);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(-10px) rotate(-2deg) scale(0.98);
+  }
+  100% {
+    transform: translateX(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToLeft {
+  0% {
+    transform: translateX(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(20px) scale(1.05) rotate(3deg);
+  }
+  100% {
+    transform: translateX(-120vw) scale(0.5) rotate(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(60px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.02) translateY(-3px);
+  }
+}
+
+@keyframes subtleSway {
+  0%, 100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
+@keyframes headTilt {
+  0%, 100% {
+    transform: rotate(-2deg) translateX(0);
+  }
+  25% {
+    transform: rotate(1deg) translateX(2px);
+  }
+  50% {
+    transform: rotate(2deg) translateX(-1px);
+  }
+  75% {
+    transform: rotate(-1deg) translateX(1px);
+  }
+}
+
+@keyframes hairFlow {
+  0%, 100% {
+    transform: skewX(0deg);
+  }
+  25% {
+    transform: skewX(1deg);
+  }
+  75% {
+    transform: skewX(-1deg);
+  }
+}
+
+@keyframes hairStrandRight {
+  0%, 100% {
+    transform: rotate(-10deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-5deg) translateY(2px);
+  }
+}
+
+@keyframes hairStrandLeft {
+  0%, 100% {
+    transform: rotate(10deg) translateY(0);
+  }
+  50% {
+    transform: rotate(5deg) translateY(2px);
+  }
+}
+
+@keyframes blushPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes eyeMovement {
+  0%, 40%, 100% {
+    transform: translateX(0);
+  }
+  45% {
+    transform: translateX(2px);
+  }
+  55% {
+    transform: translateX(-2px);
+  }
+  60% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes realisticBlink {
+  0%, 92%, 100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.1);
+  }
+  96% {
+    transform: scaleY(0.05);
+  }
+  98% {
+    transform: scaleY(0.5);
+  }
+}
+
+@keyframes eyeSparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes talk {
+  0%, 100% {
+    height: 14px;
+    border-radius: 0 0 20px 20px;
+  }
+  50% {
+    height: 18px;
+    border-radius: 0 0 15px 15px;
+  }
+}
+
+@keyframes mouthExpression {
+  0%, 100% {
+    width: 28px;
+  }
+  50% {
+    width: 32px;
+  }
+}
+
+@keyframes bodyBreath {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.01);
+  }
+}
+
+@keyframes dressFlow {
+  0%, 100% {
+    transform: skewX(0deg);
+    border-radius: 0 0 50px 50px;
+  }
+  25% {
+    transform: skewX(0.5deg);
+    border-radius: 0 0 48px 52px;
+  }
+  75% {
+    transform: skewX(-0.5deg);
+    border-radius: 0 0 52px 48px;
+  }
+}
+
+@keyframes buttonShine {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.5);
+  }
+  50% {
+    box-shadow: 0 2px 15px rgba(255, 193, 7, 0.8), 0 0 20px rgba(255, 193, 7, 0.4);
+  }
+}
+
+@keyframes waveLeftRealistic {
+  0%, 100% {
+    transform: rotate(-15deg);
+  }
+  25% {
+    transform: rotate(25deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(20deg);
+  }
+}
+
+@keyframes waveRightRealistic {
+  0%, 100% {
+    transform: rotate(15deg);
+  }
+  25% {
+    transform: rotate(-20deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  75% {
+    transform: rotate(-15deg);
+  }
+}
+
+@keyframes bubbleFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes borderGlow {
+  0% {
+    opacity: 0.3;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+  }
+  100% {
+    opacity: 0.6;
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.4);
+  }
+}
+
+@keyframes textShimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes textPop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sparkleRealistic {
+  0%, 100% {
+    transform: scale(1) rotate(0deg) translateY(0);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.3) rotate(90deg) translateY(-5px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(0.9) rotate(180deg) translateY(0);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.2) rotate(270deg) translateY(-3px);
+    opacity: 0.9;
+  }
+}
+
+@keyframes floatRealistic {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-15px) rotate(5deg) scale(1.05);
+  }
+  50% {
+    transform: translateY(-25px) rotate(-3deg) scale(1);
+  }
+  75% {
+    transform: translateY(-10px) rotate(8deg) scale(1.02);
+  }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .character {
+    transform: scale(0.8);
+  }
+
+  .speech-bubble {
+    padding: 1.5rem 2rem;
+    max-width: 300px;
+  }
+
+  .speech-bubble h2 {
+    font-size: 2rem;
+  }
+
+  .speech-bubble p {
+    font-size: 1rem;
+  }
+
+  .chip {
+    font-size: 2rem;
+  }
+}
+
+/* Estado de habla activa */
+.welcome-animation-overlay.speaking .mouth {
+  animation: talk 0.15s ease-in-out infinite;
+}
+
+.welcome-animation-overlay.speaking .character {
+  animation: breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, 
+             subtleSway 3s ease-in-out infinite;
+}
+
+/* Efectos adicionales de entrada */
+.welcome-animation-overlay.enter .sparkle {
+  animation: sparkleRealistic 1s ease-in-out infinite, fadeInUp 0.5s ease-out both;
+}
+
+.welcome-animation-overlay.enter .sparkle:nth-child(1) {
+  animation-delay: 1.5s, 1.5s;
+}
+
+.welcome-animation-overlay.enter .sparkle:nth-child(2) {
+  animation-delay: 1.7s, 1.7s;
+}
+
+.welcome-animation-overlay.enter .sparkle:nth-child(3) {
+  animation-delay: 1.9s, 1.9s;
+}

@@ -20,6 +20,14 @@ const ProjectsSection = () => {
       isInternal: true
     },
     {
+      title: 'Sistema de Reservas de Canchas',
+      description:
+        'Sistema completo para la gestión de reservas de canchas de fútbol sintético. Incluye landing page, formulario de reserva en 3 pasos, panel de administración con estadísticas y gestión de horarios y precios.',
+      tags: ['React', 'Context API', 'Tailwind CSS', 'Responsive'],
+      demoUrl: '/reservas',
+      isInternal: true
+    },
+    {
       title: 'Plataforma de E-Learning',
       description:
         'Sistema completo para la gestión de cursos online, usuarios y progreso. Incluye pasarela de pago y foros de discusión en tiempo real.',
