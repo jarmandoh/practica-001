@@ -154,7 +154,7 @@ const CourtCard = ({
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&display=swap');
         
         @keyframes bounce-in {

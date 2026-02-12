@@ -27,6 +27,7 @@ import {
   ReservasProvider,
   ReservasLanding,
   ReservasCanchas,
+  ReservasCrear,
   ProtectedReservasAdmin
 } from './Reservas'
 
@@ -77,6 +78,7 @@ function App() {
           {/* Rutas independientes del Sistema de Reservas de Canchas */}
           <Route path="/reservas" element={<ReservasProvider><ReservasLanding /></ReservasProvider>} />
           <Route path="/reservas/canchas" element={<ReservasProvider><ReservasCanchas /></ReservasProvider>} />
+          <Route path="/reservas/reserva/crear" element={<ReservasProvider><ReservasCrear /></ReservasProvider>} />
           <Route path="/reservas/admin" element={<ReservasProvider><ProtectedReservasAdmin /></ReservasProvider>} />
         </Routes>
       </div>

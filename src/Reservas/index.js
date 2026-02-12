@@ -8,6 +8,7 @@ export { ReservasProvider, useReservas } from './context/ReservasContext';
 export { default as ReservasLanding } from './pages/ReservasLanding';
 export { default as ReservasAdmin } from './pages/ReservasAdmin';
 export { default as ReservasCanchas } from './pages/ReservasCanchas';
+export { default as ReservasCrear } from './pages/ReservasCrear';
 export { default as ProtectedReservasAdmin } from './pages/ProtectedReservasAdmin';
 
 // Components

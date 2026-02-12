@@ -2,8 +2,8 @@ import React from 'react';
 
 const TimeSlotPicker = ({
   slots = [],
-  selectedSlot = null,
-  onSelectSlot,
+  selectedSlots = [],
+  onToggleSlot,
   showPrices = true,
   disabled = false,
   loading = false
@@ -27,6 +27,9 @@ const TimeSlotPicker = ({
     );
   }
 
+  // Verificar si un slot está seleccionado
+  const isSlotSelected = (slot) => selectedSlots.some(s => s.startTime === slot.startTime);
+
   // Agrupar slots por categoría (mañana, tarde, noche)
   const groupedSlots = {
     morning: slots.filter(s => {
@@ -43,8 +46,8 @@ const TimeSlotPicker = ({
     })
   };
 
-  const renderSlotGroup = (title, icon, slots, bgColor) => {
-    if (slots.length === 0) return null;
+  const renderSlotGroup = (title, icon, groupSlots, bgColor) => {
+    if (groupSlots.length === 0) return null;
 
     return (
       <div className="mb-6">
@@ -52,19 +55,19 @@ const TimeSlotPicker = ({
           <span className="text-xl">{icon}</span>
           <h4 className="font-semibold text-gray-700 dark:text-gray-200">{title}</h4>
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            ({slots.filter(s => s.isAvailable).length} disponibles)
+            ({groupSlots.filter(s => s.isAvailable).length} disponibles)
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {slots.map((slot, index) => {
-            const isSelected = selectedSlot?.startTime === slot.startTime;
+          {groupSlots.map((slot, index) => {
+            const isSelected = isSlotSelected(slot);
             const isAvailable = slot.isAvailable;
 
             return (
               <button
                 key={index}
-                onClick={() => isAvailable && !disabled && onSelectSlot?.(slot)}
+                onClick={() => isAvailable && !disabled && onToggleSlot?.(slot)}
                 disabled={!isAvailable || disabled}
                 className={`
                   relative p-3 rounded-xl border-2 transition-all duration-200
@@ -133,7 +136,7 @@ const TimeSlotPicker = ({
   return (
     <div>
       {/* Legend */}
-      <div className="flex items-center gap-4 mb-4 text-sm">
+      <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded border-2 border-gray-200 bg-white"></div>
           <span className="text-gray-600 dark:text-gray-400">Disponible</span>
@@ -147,6 +150,19 @@ const TimeSlotPicker = ({
           <span className="text-gray-600 dark:text-gray-400">Ocupado</span>
         </div>
       </div>
+
+      {/* Multi-select hint */}
+      {selectedSlots.length > 0 && (
+        <div className="mb-4 px-4 py-2.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl text-sm text-sky-700 dark:text-sky-300 flex items-center gap-2">
+          <span className="text-lg">💡</span>
+          <span>
+            {selectedSlots.length === 1 
+              ? 'Puedes seleccionar más horarios para reservar varias horas' 
+              : `${selectedSlots.length} horas seleccionadas — Toca cualquiera para deseleccionar`
+            }
+          </span>
+        </div>
+      )}
 
       {/* Slot Groups */}
       {renderSlotGroup('Mañana', '🌅', groupedSlots.morning, 'bg-orange-50 dark:bg-orange-900/20')}

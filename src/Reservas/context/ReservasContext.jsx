@@ -162,15 +162,30 @@ export const ReservasProvider = ({ children }) => {
            (r.status === 'pending' || r.status === 'confirmed')
     );
 
+    // Verificar si la fecha es hoy para bloquear horarios pasados
+    const now = new Date();
+    const isToday = dateStr === now.toISOString().split('T')[0];
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
     return slots.map(slot => {
       const isReserved = courtReservations.some(
         r => r.startTime === slot.startTime
       );
+
+      // Bloquear si es hoy y el horario ya pasó
+      let isPast = false;
+      if (isToday) {
+        const [slotH, slotM] = slot.startTime.split(':').map(Number);
+        isPast = slotH < currentHour || (slotH === currentHour && slotM <= currentMinute);
+      }
+
       const price = getCourtPrice(courtId, date, slot.startTime);
       
       return {
         ...slot,
-        isAvailable: !isReserved,
+        isAvailable: !isReserved && !isPast,
+        isPast,
         price,
         formattedPrice: formatPrice(price)
       };

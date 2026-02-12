@@ -125,7 +125,7 @@ const Banner = ({
         </svg>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap');
         
         @keyframes float {

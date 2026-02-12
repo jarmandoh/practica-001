@@ -3,16 +3,18 @@ import { useReservas } from '../../context/ReservasContext';
 import CourtCard from '../CourtCard';
 import TimeSlotPicker from '../TimeSlotPicker';
 
-const ReservationForm = ({ onSuccess, onCancel }) => {
-  const { courts, getAvailableSlots, createReservation, settings } = useReservas();
+const ReservationForm = ({ onSuccess, onCancel, fullPage = false }) => {
+  const { courts, getAvailableSlots, createReservation, settings, formatPrice } = useReservas();
   const formRef = useRef(null);
   
   const [step, setStep] = useState(1);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedSlots, setSelectedSlots] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
   const [customerData, setCustomerData] = useState({
     fullName: '',
     email: '',
@@ -48,7 +50,7 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
         const slots = getAvailableSlots(selectedCourt.id, selectedDate);
         setAvailableSlots(slots);
         setLoadingSlots(false);
-        setSelectedSlot(null);
+        setSelectedSlots([]);
       }, 300);
     }
   }, [selectedCourt, selectedDate, getAvailableSlots]);
@@ -85,10 +87,43 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Mostrar toast con auto-dismiss
+  const showToast = (message) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToast(message);
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 6000);
+  };
+
+  // Manejar toggle de slot (multi-selección libre)
+  const handleToggleSlot = (slot) => {
+    setSelectedSlots(prev => {
+      const isAlreadySelected = prev.some(s => s.startTime === slot.startTime);
+      let newSlots;
+      if (isAlreadySelected) {
+        newSlots = prev.filter(s => s.startTime !== slot.startTime);
+      } else {
+        newSlots = [...prev, slot].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      }
+      // Mostrar toast si más de 1 hora seleccionada
+      if (newSlots.length > 1) {
+        const total = newSlots.reduce((sum, s) => sum + (s.price || 0), 0);
+        const deposit = Math.ceil(total / 2);
+        const formattedTotal = formatPrice ? formatPrice(total) : `$${total.toLocaleString('es-CO')}`;
+        const formattedDeposit = formatPrice ? formatPrice(deposit) : `$${deposit.toLocaleString('es-CO')}`;
+        showToast(
+          `${newSlots.length} horas seleccionadas — Total: ${formattedTotal}. Para confirmar la reserva debes pagar al menos el 50% (${formattedDeposit}).`
+        );
+      } else {
+        setToast(null);
+      }
+      return newSlots;
+    });
+  };
+
   // Manejar selección de cancha
   const handleSelectCourt = (court) => {
     setSelectedCourt(court);
-    setSelectedSlot(null);
+    setSelectedSlots([]);
     setAvailableSlots([]);
     // Auto-avanzar al paso 2 tras seleccionar cancha
     setTimeout(() => goToStep(2), 450);
@@ -97,7 +132,7 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
   // Manejar cambio de fecha
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
-    setSelectedSlot(null);
+    setSelectedSlots([]);
   };
 
   // Manejar envío del formulario
@@ -107,12 +142,17 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
     setSubmitting(true);
     
     try {
+      const sortedSlots = [...selectedSlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      const totalPrice = sortedSlots.reduce((sum, s) => sum + (s.price || 0), 0);
       const result = createReservation({
         courtId: selectedCourt.id,
         date: selectedDate,
-        startTime: selectedSlot.startTime,
-        endTime: selectedSlot.endTime,
-        customer: customerData
+        slots: sortedSlots.map(s => ({ startTime: s.startTime, endTime: s.endTime })),
+        startTime: sortedSlots[0].startTime,
+        endTime: sortedSlots[sortedSlots.length - 1].endTime,
+        customer: customerData,
+        totalPrice,
+        hoursCount: sortedSlots.length
       });
 
       if (result.success) {
@@ -174,10 +214,21 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
   };
 
   const canProceedToStep2 = selectedCourt !== null;
-  const canProceedToStep3 = selectedSlot !== null;
+  const canProceedToStep3 = selectedSlots.length > 0;
+
+  // Calcular precio total y depósito
+  const sortedSelectedSlots = [...selectedSlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const totalPrice = sortedSelectedSlots.reduce((sum, s) => sum + (s.price || 0), 0);
+  const depositAmount = Math.ceil(totalPrice / 2);
+  const formattedTotalPrice = formatPrice ? formatPrice(totalPrice) : `$${totalPrice.toLocaleString('es-CO')}`;
+  const formattedDeposit = formatPrice ? formatPrice(depositAmount) : `$${depositAmount.toLocaleString('es-CO')}`;
 
   return (
-    <div ref={formRef} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden">
+    <div ref={formRef} className={`bg-white dark:bg-gray-900 overflow-hidden ${
+      fullPage 
+        ? 'rounded-2xl shadow-xl flex flex-col min-h-[calc(100vh-5rem)]' 
+        : 'rounded-3xl shadow-2xl'
+    }`}>
       {/* Progress Steps */}
       <div className="bg-linear-to-r from-sky-50 to-amber-50 dark:from-sky-900/20 dark:to-amber-900/20 px-6 py-5 border-b dark:border-gray-700">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -223,7 +274,7 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
       </div>
 
       {/* Form Content */}
-      <div className="p-6">
+      <div className={`p-4 sm:p-6 ${fullPage ? 'flex-1 overflow-y-auto' : ''}`}>
         {/* Step 1: Seleccionar Cancha */}
         {step === 1 && (
           <div className="animate-[fadeIn_0.5s_ease-out]">
@@ -393,8 +444,8 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
                 </label>
                 <TimeSlotPicker
                   slots={availableSlots}
-                  selectedSlot={selectedSlot}
-                  onSelectSlot={setSelectedSlot}
+                  selectedSlots={selectedSlots}
+                  onToggleSlot={handleToggleSlot}
                   loading={loadingSlots}
                 />
               </div>
@@ -433,13 +484,43 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
                 </div>
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">Horario:</span>
-                  <p className="font-medium text-gray-900 dark:text-white">{selectedSlot?.label}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {sortedSelectedSlots.length > 1 
+                      ? `${sortedSelectedSlots.length} horas seleccionadas`
+                      : sortedSelectedSlots[0]?.label || ''
+                    }
+                  </p>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Precio:</span>
-                  <p className="font-bold text-red-600 dark:text-yellow-400 text-lg">{selectedSlot?.formattedPrice}</p>
+                  <span className="text-gray-500 dark:text-gray-400">Precio total:</span>
+                  <p className="font-bold text-red-600 dark:text-yellow-400 text-lg">{formattedTotalPrice}</p>
                 </div>
               </div>
+
+              {/* Desglose cuando hay varias horas */}
+              {sortedSelectedSlots.length > 1 && (
+                <div className="mt-3 pt-3 border-t border-yellow-300 dark:border-yellow-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-semibold">Desglose por hora:</p>
+                  <div className="space-y-1">
+                    {sortedSelectedSlots.map((slot, i) => (
+                      <div key={i} className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                        <span>{slot.startTime} - {slot.endTime}</span>
+                        <span className="font-medium">{slot.formattedPrice}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Aviso de depósito */}
+              {sortedSelectedSlots.length > 1 && (
+                <div className="mt-3 p-3 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg">
+                  <p className="text-sm text-amber-800 dark:text-amber-300 font-semibold flex items-center gap-2">
+                    <span className="text-lg">💰</span>
+                    Para confirmar la reserva debes pagar al menos el 50% del total: <span className="text-amber-900 dark:text-amber-200 font-black">{formattedDeposit}</span>
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Customer Form */}
@@ -561,14 +642,47 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&display=swap');
         
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+
+        @keyframes toastSlideIn {
+          from { opacity: 0; transform: translateY(100%) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes toastSlideOut {
+          from { opacity: 1; transform: translateY(0) scale(1); }
+          to { opacity: 0; transform: translateY(100%) scale(0.95); }
+        }
       `}</style>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div 
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-lg"
+          style={{ animation: 'toastSlideIn 0.35s ease-out forwards' }}
+        >
+          <div className="bg-linear-to-r from-sky-600 to-sky-700 dark:from-sky-700 dark:to-sky-800 text-white px-5 py-4 rounded-2xl shadow-2xl shadow-sky-500/30 flex items-start gap-3 border border-sky-400/30">
+            <span className="text-2xl shrink-0 mt-0.5">💡</span>
+            <div className="flex-1">
+              <p className="text-sm font-medium leading-relaxed">{toast}</p>
+            </div>
+            <button 
+              onClick={() => setToast(null)}
+              className="shrink-0 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -178,33 +178,34 @@ const ReservasAdmin = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-8">
-          <div className="border-b dark:border-gray-700">
-            <nav className="flex -mb-px">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-8 overflow-hidden">
+          <div className="border-b dark:border-gray-700 overflow-x-auto scrollbar-thin">
+            <nav className="flex -mb-px min-w-max">
               {[
-                { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-                { id: 'courts', label: 'Canchas', icon: '🏟️' },
-                { id: 'reservations', label: 'Reservas', icon: '📅' },
-                { id: 'bulk', label: 'Reserva Múltiple', icon: '📦' },
-                { id: 'pricing', label: 'Precios', icon: '💰' }
+                { id: 'dashboard', label: 'Dashboard', shortLabel: 'Inicio', icon: '📊' },
+                { id: 'courts', label: 'Canchas', shortLabel: 'Canchas', icon: '🏟️' },
+                { id: 'reservations', label: 'Reservas', shortLabel: 'Reservas', icon: '📅' },
+                { id: 'bulk', label: 'Reserva Múltiple', shortLabel: 'Múltiple', icon: '📦' },
+                { id: 'pricing', label: 'Precios', shortLabel: 'Precios', icon: '💰' }
               ].map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-blue-700 text-blue-700 dark:text-yellow-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                   }`}
                 >
                   <span>{tab.icon}</span>
-                  {tab.label}
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.shortLabel}</span>
                 </button>
               ))}
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {/* Dashboard Tab */}
             {activeTab === 'dashboard' && (
               <div>
