@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useReservas } from '../../context/ReservasContext';
 import CourtCard from '../CourtCard';
 import TimeSlotPicker from '../TimeSlotPicker';
 
 const ReservationForm = ({ onSuccess, onCancel }) => {
   const { courts, getAvailableSlots, createReservation, settings } = useReservas();
+  const formRef = useRef(null);
   
   const [step, setStep] = useState(1);
   const [selectedCourt, setSelectedCourt] = useState(null);
@@ -89,6 +90,8 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
     setSelectedCourt(court);
     setSelectedSlot(null);
     setAvailableSlots([]);
+    // Auto-avanzar al paso 2 tras seleccionar cancha
+    setTimeout(() => goToStep(2), 450);
   };
 
   // Manejar cambio de fecha
@@ -118,7 +121,7 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
         setErrors({ submit: result.error });
       }
     } catch (_error) {
-      setErrors({ submit: 'Error al crear la reserva. Por favor intenta de nuevo.' });
+      setErrors({ submit: `Error al crear la reserva. Por favor intenta de nuevo. ${_error.message}` });
     } finally {
       setSubmitting(false);
     }
@@ -127,41 +130,92 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
   // Navegar entre pasos
   const goToStep = (newStep) => {
     setStep(newStep);
+    // Scroll suave al formulario al cambiar de paso
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  // Generar los próximos días disponibles para el selector visual
+  const getNextDays = () => {
+    const days = [];
+    const minDate = new Date(getMinDate() + 'T00:00:00');
+    const maxDate = new Date(getMaxDate() + 'T00:00:00');
+    const current = new Date(minDate);
+    
+    while (current <= maxDate && days.length < 14) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return days;
+  };
+
+  const formatDayName = (date) => {
+    return date.toLocaleDateString('es-CO', { weekday: 'short' }).replace('.', '');
+  };
+
+  const formatDayNumber = (date) => {
+    return date.getDate();
+  };
+
+  const formatMonthName = (date) => {
+    return date.toLocaleDateString('es-CO', { month: 'short' }).replace('.', '');
+  };
+
+  const isToday = (date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isTomorrow = (date) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return date.toDateString() === tomorrow.toDateString();
   };
 
   const canProceedToStep2 = selectedCourt !== null;
   const canProceedToStep3 = selectedSlot !== null;
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
+    <div ref={formRef} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden">
       {/* Progress Steps */}
-      <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-b dark:border-gray-700">
-        <div className="flex items-center justify-between max-w-lg mx-auto">
+      <div className="bg-linear-to-r from-sky-50 to-amber-50 dark:from-sky-900/20 dark:to-amber-900/20 px-6 py-5 border-b dark:border-gray-700">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
           {[
-            { num: 1, label: 'Cancha' },
-            { num: 2, label: 'Horario' },
-            { num: 3, label: 'Datos' }
+            { num: 1, label: 'Cancha', icon: '🏟️' },
+            { num: 2, label: 'Horario', icon: '🕐' },
+            { num: 3, label: 'Datos', icon: '👤' }
           ].map((s, index) => (
             <React.Fragment key={s.num}>
               <div 
-                className={`flex items-center gap-2 cursor-pointer ${
-                  step >= s.num ? 'text-blue-700' : 'text-gray-400'
+                className={`flex items-center gap-3 cursor-pointer group ${
+                  step >= s.num ? 'text-sky-600 dark:text-sky-400' : 'text-gray-400'
                 }`}
                 onClick={() => s.num < step && goToStep(s.num)}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg transition-all duration-500 ${
                   step >= s.num 
-                    ? 'bg-blue-800 text-white' 
-                    : 'bg-gray-200 dark:bg-gray-700'
+                    ? 'bg-linear-to-br from-sky-500 to-sky-600 text-white shadow-lg scale-110' 
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
                 }`}>
-                  {step > s.num ? '✓' : s.num}
+                  {step > s.num ? '✓' : s.icon}
+                  {step === s.num && (
+                    <div className="absolute inset-0 bg-sky-400 rounded-2xl animate-ping opacity-30"></div>
+                  )}
                 </div>
-                <span className="hidden sm:inline font-medium">{s.label}</span>
+                <div className="hidden sm:block">
+                  <span className="font-bold text-sm block">{s.label}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Paso {s.num}</span>
+                </div>
               </div>
               {index < 2 && (
-                <div className={`flex-1 h-1 mx-2 rounded ${
-                  step > s.num ? 'bg-blue-800' : 'bg-gray-200 dark:bg-gray-700'
-                }`}></div>
+                <div className="flex-1 h-1.5 mx-3 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                  <div 
+                    className={`h-full bg-linear-to-r from-sky-500 to-sky-600 transition-all duration-500 ${
+                      step > s.num ? 'w-full' : 'w-0'
+                    }`}
+                  ></div>
+                </div>
               )}
             </React.Fragment>
           ))}
@@ -172,31 +226,31 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
       <div className="p-6">
         {/* Step 1: Seleccionar Cancha */}
         {step === 1 && (
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="animate-[fadeIn_0.5s_ease-out]">
+            <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-3" style={{ fontFamily: "'Exo 2', sans-serif" }}>
               Selecciona tu cancha
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6 text-base">
               Elige la cancha que mejor se adapte a tus necesidades
             </p>
 
             {/* Filter */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-3 mb-6">
               <button
                 onClick={() => setFilterType('all')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
                   filterType === 'all'
-                    ? 'bg-blue-800 text-white'
+                    ? 'bg-linear-to-r from-sky-500 to-sky-600 text-white shadow-lg'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
                 }`}
               >
-                Todas
+                🎯 Todas
               </button>
               <button
                 onClick={() => setFilterType('futbol_5')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
                   filterType === 'futbol_5'
-                    ? 'bg-blue-800 text-white'
+                    ? 'bg-linear-to-r from-sky-500 to-sky-600 text-white shadow-lg'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
                 }`}
               >
@@ -204,9 +258,9 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
               </button>
               <button
                 onClick={() => setFilterType('futbol_8')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
                   filterType === 'futbol_8'
-                    ? 'bg-blue-800 text-white'
+                    ? 'bg-linear-to-r from-sky-500 to-sky-600 text-white shadow-lg'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
                 }`}
               >
@@ -214,9 +268,9 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
               </button>
               <button
                 onClick={() => setFilterType('futbol_11')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
                   filterType === 'futbol_11'
-                    ? 'bg-blue-800 text-white'
+                    ? 'bg-linear-to-r from-sky-500 to-sky-600 text-white shadow-lg'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'
                 }`}
               >
@@ -237,9 +291,9 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
             </div>
 
             {filteredCourts.length === 0 && (
-              <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                <span className="text-5xl mb-4 block">🔍</span>
-                <p className="text-gray-500 dark:text-gray-400">
+              <div className="text-center py-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <span className="text-6xl mb-4 block animate-bounce">🔍</span>
+                <p className="text-gray-600 dark:text-gray-400 font-medium">
                   No hay canchas disponibles con este filtro
                 </p>
               </div>
@@ -249,34 +303,93 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
 
         {/* Step 2: Seleccionar Fecha y Hora */}
         {step === 2 && (
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="animate-[fadeIn_0.5s_ease-out]">
+            <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-3" style={{ fontFamily: "'Exo 2', sans-serif" }}>
               Elige fecha y horario
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Selecciona cuándo quieres jugar en <span className="font-semibold text-blue-700">{selectedCourt?.name}</span>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 text-base">
+              Selecciona cuándo quieres jugar en <span className="font-bold text-sky-600 dark:text-sky-400">{selectedCourt?.name}</span>
             </p>
 
-            {/* Date Picker */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                📅 Fecha
+            {/* Date Picker - Visual Calendar */}
+            <div className="mb-8">
+              <label className="text-base font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2" style={{ fontFamily: "'Exo 2', sans-serif" }}>
+                <span className="text-2xl">📅</span> Selecciona una fecha
               </label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={handleDateChange}
-                min={getMinDate()}
-                max={getMaxDate()}
-                className="w-full md:w-auto px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-800 dark:text-white"
-              />
+              
+              {/* Visual Day Cards */}
+              <div className="flex gap-2 overflow-x-auto py-4 scrollbar-thin">
+                {getNextDays().map((day) => {
+                  const dateStr = day.toISOString().split('T')[0];
+                  const isSelected = selectedDate === dateStr;
+                  const dayIsToday = isToday(day);
+                  const dayIsTomorrow = isTomorrow(day);
+                  const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                  
+                  return (
+                    <button
+                      key={dateStr}
+                      onClick={() => handleDateChange({ target: { value: dateStr } })}
+                      className={`relative shrink-0 w-[72px] py-3 rounded-2xl flex flex-col items-center gap-1 transition-all duration-300 transform hover:scale-105 border-2 ${
+                        isSelected
+                          ? 'bg-linear-to-b from-sky-500 to-sky-600 text-white border-sky-400 shadow-lg shadow-sky-500/30 scale-105'
+                          : isWeekend
+                          ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 hover:border-amber-400 text-gray-700 dark:text-gray-300'
+                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-sky-400 dark:hover:border-sky-500 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {/* Today/Tomorrow label */}
+                      {(dayIsToday || dayIsTomorrow) && (
+                        <span className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
+                          isSelected ? 'bg-amber-400 text-gray-900' : 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400'
+                        }`}>
+                          {dayIsToday ? 'Hoy' : 'Mañana'}
+                        </span>
+                      )}
+                      
+                      <span className={`text-[11px] font-bold uppercase tracking-wide ${
+                        isSelected ? 'text-sky-100' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {formatDayName(day)}
+                      </span>
+                      <span className={`text-2xl font-black leading-none ${
+                        isSelected ? 'text-white' : ''
+                      }`} style={{ fontFamily: "'Exo 2', sans-serif" }}>
+                        {formatDayNumber(day)}
+                      </span>
+                      <span className={`text-[11px] font-semibold capitalize ${
+                        isSelected ? 'text-sky-200' : 'text-gray-400 dark:text-gray-500'
+                      }`}>
+                        {formatMonthName(day)}
+                      </span>
+
+                      {/* Selection indicator dot */}
+                      {isSelected && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full mt-0.5"></div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Selected date display */}
+              {selectedDate && (
+                <div className="mt-3 flex items-center gap-2 text-sm">
+                  <span className="text-sky-600 dark:text-sky-400 font-bold">✓</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-CO', { 
+                      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Time Slots */}
             {selectedDate && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  🕐 Horario disponible
+                <label className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2" style={{ fontFamily: "'Exo 2', sans-serif" }}>
+                  <span className="text-2xl">🕐</span> Horario disponible
                 </label>
                 <TimeSlotPicker
                   slots={availableSlots}
@@ -409,10 +522,11 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
       </div>
 
       {/* Footer Actions */}
-      <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-t dark:border-gray-700 flex justify-between">
+      <div className="bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 px-6 py-5 border-t dark:border-gray-700 flex justify-between">
         <button
           onClick={() => step > 1 ? goToStep(step - 1) : onCancel?.()}
-          className="px-6 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium"
+          className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-bold rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-all"
+          style={{ fontFamily: "'Exo 2', sans-serif" }}
         >
           {step > 1 ? '← Anterior' : 'Cancelar'}
         </button>
@@ -421,7 +535,8 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
           <button
             onClick={() => goToStep(step + 1)}
             disabled={step === 1 ? !canProceedToStep2 : !canProceedToStep3}
-            className="px-6 py-2 bg-blue-800 hover:bg-blue-900 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors"
+            className="px-8 py-3 bg-linear-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg disabled:shadow-none"
+            style={{ fontFamily: "'Exo 2', sans-serif" }}
           >
             Siguiente →
           </button>
@@ -429,11 +544,12 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-900 font-medium rounded-xl transition-colors flex items-center gap-2"
+            className="px-8 py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-gray-900 font-black rounded-xl transition-all transform hover:scale-105 shadow-lg disabled:shadow-none flex items-center gap-2"
+            style={{ fontFamily: "'Exo 2', sans-serif" }}
           >
             {submitting ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-3 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
                 Procesando...
               </>
             ) : (
@@ -444,6 +560,15 @@ const ReservationForm = ({ onSuccess, onCancel }) => {
           </button>
         )}
       </div>
+
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&display=swap');
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useReservas } from '../context/ReservasContext';
-import { COURT_TYPES, DAYS_OF_WEEK, TIME_SLOT_CATEGORIES, formatPrice } from '../data/courtsConfig';
+import { COURT_TYPES, DAYS_OF_WEEK, TIME_SLOT_CATEGORIES } from '../data/courtsConfig';
 
 const ReservasAdmin = () => {
   const { 
@@ -8,6 +8,7 @@ const ReservasAdmin = () => {
     reservations, 
     settings, 
     getStats,
+    getAvailableSlots,
     saveCourt,
     deleteCourt,
     updateCourtOperatingHours,
@@ -15,6 +16,8 @@ const ReservasAdmin = () => {
     updateSettings,
     updateReservationStatus,
     cancelReservation,
+    createBulkReservation,
+    formatPrice,
     logoutAdmin
   } = useReservas();
 
@@ -23,6 +26,13 @@ const ReservasAdmin = () => {
   const [showCourtModal, setShowCourtModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingCourt, setEditingCourt] = useState(null);
+
+  // Bulk reservation state
+  const [bulkItems, setBulkItems] = useState([]);
+  const [bulkCustomer, setBulkCustomer] = useState({ fullName: '', email: '', phone: '' });
+  const [bulkNotes, setBulkNotes] = useState('');
+  const [bulkResult, setBulkResult] = useState(null);
+  const [newBulkItem, setNewBulkItem] = useState({ courtId: '', date: '', startTime: '' });
 
   const stats = getStats();
 
@@ -175,6 +185,7 @@ const ReservasAdmin = () => {
                 { id: 'dashboard', label: 'Dashboard', icon: '📊' },
                 { id: 'courts', label: 'Canchas', icon: '🏟️' },
                 { id: 'reservations', label: 'Reservas', icon: '📅' },
+                { id: 'bulk', label: 'Reserva Múltiple', icon: '📦' },
                 { id: 'pricing', label: 'Precios', icon: '💰' }
               ].map(tab => (
                 <button
@@ -508,6 +519,256 @@ const ReservasAdmin = () => {
               </div>
             )}
 
+            {/* Bulk Reservation Tab */}
+            {activeTab === 'bulk' && (
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  📦 Reserva Múltiple de Canchas
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                  Reserva varias canchas en diferentes días y horarios de una sola vez. Ideal para torneos y eventos.
+                </p>
+
+                {/* Success Result */}
+                {bulkResult && (
+                  <div className={`mb-6 p-5 rounded-xl border-2 ${
+                    bulkResult.failed === 0 
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                      : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700'
+                  }`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{bulkResult.failed === 0 ? '✅' : '⚠️'}</span>
+                      <h3 className="font-bold text-gray-900 dark:text-white">
+                        Reservas creadas: {bulkResult.successful}/{bulkResult.total}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Código de grupo: <code className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded font-mono text-sm">{bulkResult.bulkCode}</code>
+                    </p>
+                    <p className="text-lg font-black text-gray-900 dark:text-white mt-2">
+                      Total: {formatPrice(bulkResult.totalPrice)}
+                    </p>
+                    {bulkResult.failed > 0 && (
+                      <p className="text-sm text-red-600 mt-2">
+                        {bulkResult.failed} reservas fallaron por horarios no disponibles
+                      </p>
+                    )}
+                    <button 
+                      onClick={() => setBulkResult(null)} 
+                      className="mt-3 text-sm text-sky-600 hover:underline"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left: Add Items */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Add item form */}
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5">
+                      <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <span>➕</span> Agregar Cancha a la Reserva
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Cancha</label>
+                          <select
+                            value={newBulkItem.courtId}
+                            onChange={(e) => setNewBulkItem(prev => ({ ...prev, courtId: Number(e.target.value) }))}
+                            className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                          >
+                            <option value="">Seleccionar cancha</option>
+                            {courts.filter(c => c.isActive !== false).map(court => (
+                              <option key={court.id} value={court.id}>{court.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Fecha</label>
+                          <input
+                            type="date"
+                            value={newBulkItem.date}
+                            onChange={(e) => setNewBulkItem(prev => ({ ...prev, date: e.target.value, startTime: '' }))}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Horario</label>
+                          <select
+                            value={newBulkItem.startTime}
+                            onChange={(e) => setNewBulkItem(prev => ({ ...prev, startTime: e.target.value }))}
+                            className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                            disabled={!newBulkItem.courtId || !newBulkItem.date}
+                          >
+                            <option value="">Seleccionar horario</option>
+                            {newBulkItem.courtId && newBulkItem.date && 
+                              getAvailableSlots(newBulkItem.courtId, newBulkItem.date)
+                                .filter(s => s.isAvailable)
+                                .map(slot => (
+                                  <option key={slot.startTime} value={slot.startTime}>
+                                    {slot.label} — {slot.formattedPrice}
+                                  </option>
+                                ))
+                            }
+                          </select>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (!newBulkItem.courtId || !newBulkItem.date || !newBulkItem.startTime) return;
+                          const court = courts.find(c => c.id === newBulkItem.courtId);
+                          const slots = getAvailableSlots(newBulkItem.courtId, newBulkItem.date);
+                          const slot = slots.find(s => s.startTime === newBulkItem.startTime);
+                          if (!slot) return;
+                          setBulkItems(prev => [...prev, {
+                            id: Date.now(),
+                            courtId: newBulkItem.courtId,
+                            courtName: court?.name || '',
+                            date: newBulkItem.date,
+                            startTime: slot.startTime,
+                            endTime: slot.endTime,
+                            label: slot.label,
+                            price: slot.price,
+                            formattedPrice: slot.formattedPrice
+                          }]);
+                          setNewBulkItem({ courtId: newBulkItem.courtId, date: newBulkItem.date, startTime: '' });
+                        }}
+                        disabled={!newBulkItem.courtId || !newBulkItem.date || !newBulkItem.startTime}
+                        className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-lg text-sm transition-colors"
+                      >
+                        + Agregar a la lista
+                      </button>
+                    </div>
+
+                    {/* Items List */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden">
+                      <div className="px-5 py-3 bg-gray-50 dark:bg-gray-700/50 border-b dark:border-gray-700 flex items-center justify-between">
+                        <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                          📋 Canchas seleccionadas ({bulkItems.length})
+                        </h3>
+                        {bulkItems.length > 0 && (
+                          <button
+                            onClick={() => setBulkItems([])}
+                            className="text-xs text-red-500 hover:text-red-700"
+                          >
+                            Limpiar todo
+                          </button>
+                        )}
+                      </div>
+
+                      {bulkItems.length > 0 ? (
+                        <div className="divide-y dark:divide-gray-700">
+                          {bulkItems.map((item, index) => (
+                            <div key={item.id} className="px-5 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                              <div className="flex items-center gap-4">
+                                <span className="text-xs font-bold text-gray-400 w-6">{index + 1}</span>
+                                <div>
+                                  <p className="font-medium text-gray-900 dark:text-white text-sm">{item.courtName}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {new Date(item.date + 'T00:00:00').toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })} — {item.label}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-gray-900 dark:text-white text-sm">{item.formattedPrice}</span>
+                                <button
+                                  onClick={() => setBulkItems(prev => prev.filter(i => i.id !== item.id))}
+                                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-8 text-center text-gray-400">
+                          <span className="text-4xl block mb-2">📦</span>
+                          <p className="text-sm">Agrega canchas, fechas y horarios a la reserva</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Summary & Customer */}
+                  <div className="space-y-5">
+                    {/* Total */}
+                    <div className="bg-linear-to-br from-sky-50 to-sky-100 dark:from-sky-900/30 dark:to-sky-800/30 rounded-xl p-5 border-2 border-sky-200 dark:border-sky-800">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total del alquiler</p>
+                      <p className="text-3xl font-black text-sky-700 dark:text-sky-400" style={{ fontFamily: "'Exo 2', sans-serif" }}>
+                        {formatPrice(bulkItems.reduce((sum, item) => sum + item.price, 0))}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {bulkItems.length} cancha(s) × {[...new Set(bulkItems.map(i => i.date))].length} día(s)
+                      </p>
+                    </div>
+
+                    {/* Customer Data */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border dark:border-gray-700">
+                      <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-sm">
+                        <span>👤</span> Datos del Cliente
+                      </h3>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          placeholder="Nombre completo"
+                          value={bulkCustomer.fullName}
+                          onChange={(e) => setBulkCustomer(prev => ({ ...prev, fullName: e.target.value }))}
+                          className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                        <input
+                          type="email"
+                          placeholder="Email"
+                          value={bulkCustomer.email}
+                          onChange={(e) => setBulkCustomer(prev => ({ ...prev, email: e.target.value }))}
+                          className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                        <input
+                          type="tel"
+                          placeholder="Teléfono"
+                          value={bulkCustomer.phone}
+                          onChange={(e) => setBulkCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                          className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                        <textarea
+                          placeholder="Notas (torneo, evento, etc.)"
+                          value={bulkNotes}
+                          onChange={(e) => setBulkNotes(e.target.value)}
+                          rows={2}
+                          className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Submit */}
+                    <button
+                      onClick={() => {
+                        if (bulkItems.length === 0) return alert('Agrega al menos una cancha');
+                        if (!bulkCustomer.fullName.trim()) return alert('Nombre del cliente requerido');
+                        if (!bulkCustomer.phone.trim()) return alert('Teléfono del cliente requerido');
+                        
+                        const result = createBulkReservation({
+                          items: bulkItems,
+                          customer: bulkCustomer,
+                          notes: bulkNotes
+                        });
+                        setBulkResult(result);
+                        setBulkItems([]);
+                        setBulkNotes('');
+                      }}
+                      disabled={bulkItems.length === 0}
+                      className="w-full py-3.5 bg-linear-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg disabled:shadow-none flex items-center justify-center gap-2"
+                    >
+                      <span>📦</span>
+                      Confirmar {bulkItems.length} Reserva(s)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Pricing Tab */}
             {activeTab === 'pricing' && (
               <div>
@@ -569,7 +830,7 @@ const ReservasAdmin = () => {
                                     }}
                                     className="sr-only peer"
                                   />
-                                  <div className="w-9 h-5 bg-gray-200 peer-focus:ring-2 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-700"></div>
+                                  <div className="w-9 h-5 bg-gray-200 peer-focus:ring-2 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-700"></div>
                                 </label>
                               </div>
                               

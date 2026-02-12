@@ -23,7 +23,7 @@ const ReservationSuccessModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-[scale-in_0.3s_ease-out]">
         {/* Success Header */}
-        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-6 py-8 text-center">
+        <div className="bg-linear-to-r from-yellow-400 to-yellow-500 px-6 py-8 text-center">
           <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
             <span className="text-5xl">✅</span>
           </div>

@@ -521,6 +521,206 @@ FROM courts c
 CROSS JOIN (SELECT 0 AS day UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6) d;
 
 -- =============================================
+-- Tabla: tournaments
+-- Descripción: Torneos y eventos especiales con reservas agrupadas
+-- =============================================
+CREATE TABLE IF NOT EXISTS tournaments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    tournament_type ENUM('relampago', 'liga', 'evento_especial', 'corporativo') DEFAULT 'relampago',
+    organizer_name VARCHAR(100) NOT NULL,
+    organizer_email VARCHAR(100),
+    organizer_phone VARCHAR(20) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    num_teams INT,
+    max_teams INT,
+    discount_percentage DECIMAL(5, 2) DEFAULT 0.00,
+    total_price DECIMAL(12, 2) DEFAULT 0.00,
+    deposit_required DECIMAL(12, 2) DEFAULT 0.00,
+    status ENUM('pending', 'confirmed', 'in_progress', 'completed', 'cancelled') DEFAULT 'pending',
+    notes TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES administrators(id),
+    INDEX idx_status (status),
+    INDEX idx_dates (start_date, end_date),
+    INDEX idx_organizer_phone (organizer_phone)
+);
+
+-- =============================================
+-- Tabla: tournament_reservations
+-- Descripción: Relación entre torneos y reservas individuales
+-- =============================================
+CREATE TABLE IF NOT EXISTS tournament_reservations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    tournament_id INT NOT NULL,
+    reservation_id INT NOT NULL,
+    match_label VARCHAR(100),
+    round VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_tournament_reservation (tournament_id, reservation_id),
+    INDEX idx_tournament (tournament_id)
+);
+
+-- =============================================
+-- Tabla: bulk_reservations
+-- Descripción: Reservas masivas agrupadas por un código de grupo
+-- =============================================
+CREATE TABLE IF NOT EXISTS bulk_reservations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    bulk_code VARCHAR(30) NOT NULL UNIQUE,
+    customer_id INT NOT NULL,
+    total_items INT NOT NULL DEFAULT 0,
+    successful_items INT NOT NULL DEFAULT 0,
+    failed_items INT NOT NULL DEFAULT 0,
+    total_price DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    status ENUM('pending', 'confirmed', 'partial', 'cancelled') DEFAULT 'confirmed',
+    notes TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (created_by) REFERENCES administrators(id),
+    INDEX idx_bulk_code (bulk_code),
+    INDEX idx_customer (customer_id),
+    INDEX idx_status (status)
+);
+
+-- =============================================
+-- Tabla: bulk_reservation_items
+-- Descripción: Items individuales de una reserva masiva
+-- =============================================
+CREATE TABLE IF NOT EXISTS bulk_reservation_items (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    bulk_reservation_id INT NOT NULL,
+    reservation_id INT NOT NULL,
+    item_price DECIMAL(10, 2) NOT NULL,
+    item_status ENUM('success', 'failed') DEFAULT 'success',
+    failure_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (bulk_reservation_id) REFERENCES bulk_reservations(id) ON DELETE CASCADE,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE,
+    INDEX idx_bulk (bulk_reservation_id)
+);
+
+-- =============================================
+-- Alteraciones a tabla reservations:
+-- Nuevas columnas para soporte de reservas masivas y torneos
+-- =============================================
+ALTER TABLE reservations
+    ADD COLUMN is_bulk_reservation BOOLEAN DEFAULT FALSE AFTER payment_method,
+    ADD COLUMN bulk_code VARCHAR(30) NULL AFTER is_bulk_reservation,
+    ADD COLUMN tournament_id INT NULL AFTER bulk_code,
+    ADD INDEX idx_bulk_code (bulk_code),
+    ADD INDEX idx_tournament (tournament_id),
+    ADD CONSTRAINT fk_reservation_tournament FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE SET NULL;
+
+-- =============================================
+-- Procedimiento: sp_create_bulk_reservation
+-- Descripción: Crea una reserva masiva con todas sus reservas hijas
+-- =============================================
+DELIMITER //
+CREATE PROCEDURE IF NOT EXISTS sp_create_bulk_reservation(
+    IN p_customer_id INT,
+    IN p_notes TEXT,
+    IN p_created_by INT,
+    OUT p_bulk_code VARCHAR(30)
+)
+BEGIN
+    SET p_bulk_code = CONCAT('BULK-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(FLOOR(RAND() * 10000), 4, '0'));
+
+    INSERT INTO bulk_reservations (bulk_code, customer_id, notes, created_by)
+    VALUES (p_bulk_code, p_customer_id, p_notes, p_created_by);
+END //
+DELIMITER ;
+
+-- =============================================
+-- Procedimiento: sp_create_tournament
+-- Descripción: Crea un torneo y sus reservas asociadas
+-- =============================================
+DELIMITER //
+CREATE PROCEDURE IF NOT EXISTS sp_create_tournament(
+    IN p_name VARCHAR(150),
+    IN p_description TEXT,
+    IN p_type VARCHAR(20),
+    IN p_organizer_name VARCHAR(100),
+    IN p_organizer_email VARCHAR(100),
+    IN p_organizer_phone VARCHAR(20),
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_num_teams INT,
+    IN p_discount DECIMAL(5,2),
+    IN p_admin_id INT,
+    OUT p_tournament_id INT
+)
+BEGIN
+    INSERT INTO tournaments (
+        name, description, tournament_type, organizer_name, organizer_email,
+        organizer_phone, start_date, end_date, num_teams, discount_percentage,
+        status, created_by
+    ) VALUES (
+        p_name, p_description, p_type, p_organizer_name, p_organizer_email,
+        p_organizer_phone, p_start_date, p_end_date, p_num_teams, p_discount,
+        'pending', p_admin_id
+    );
+
+    SET p_tournament_id = LAST_INSERT_ID();
+END //
+DELIMITER ;
+
+-- =============================================
+-- Vista: v_bulk_reservations_summary
+-- Descripción: Resumen de reservas masivas con totales
+-- =============================================
+CREATE OR REPLACE VIEW v_bulk_reservations_summary AS
+SELECT
+    br.id,
+    br.bulk_code,
+    c.full_name AS customer_name,
+    c.phone AS customer_phone,
+    br.total_items,
+    br.successful_items,
+    br.total_price,
+    br.status,
+    br.notes,
+    br.created_at,
+    a.full_name AS created_by_name
+FROM bulk_reservations br
+JOIN customers c ON br.customer_id = c.id
+LEFT JOIN administrators a ON br.created_by = a.id
+ORDER BY br.created_at DESC;
+
+-- =============================================
+-- Vista: v_tournament_schedule
+-- Descripción: Programación detallada de torneos
+-- =============================================
+CREATE OR REPLACE VIEW v_tournament_schedule AS
+SELECT
+    t.id AS tournament_id,
+    t.name AS tournament_name,
+    t.tournament_type,
+    t.status AS tournament_status,
+    t.discount_percentage,
+    tr.match_label,
+    tr.round,
+    r.reservation_date,
+    r.start_time,
+    r.end_time,
+    co.name AS court_name,
+    r.total_price,
+    r.status AS reservation_status
+FROM tournaments t
+JOIN tournament_reservations tr ON t.id = tr.tournament_id
+JOIN reservations r ON tr.reservation_id = r.id
+JOIN courts co ON r.court_id = co.id
+ORDER BY t.id, r.reservation_date, r.start_time;
+
+-- =============================================
 -- Índices adicionales para optimización
 -- =============================================
 CREATE INDEX IF NOT EXISTS idx_reservations_date_status ON reservations(reservation_date, status);
@@ -538,3 +738,4 @@ CREATE INDEX IF NOT EXISTS idx_payments_method ON payments(payment_method);
 -- 2. Configurar las variables de entorno para la conexión
 -- 3. Implementar backup automático de la base de datos
 -- 4. Revisar y ajustar los índices según el uso real
+-- 5. Las tablas de torneos y reservas masivas requieren migración si ya existe la BD

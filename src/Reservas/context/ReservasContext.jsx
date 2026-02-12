@@ -177,6 +177,55 @@ export const ReservasProvider = ({ children }) => {
     });
   }, [courts, reservations, settings.slotDurationMinutes, getCourtPrice]);
 
+  // Crear reservas múltiples (admin)
+  const createBulkReservation = useCallback((bulkData) => {
+    const { items, customer, notes } = bulkData;
+    const results = [];
+    const bulkCode = `BULK-${Date.now().toString(36).toUpperCase()}`;
+
+    for (const item of items) {
+      const { courtId, date, startTime, endTime } = item;
+      
+      // Verificar disponibilidad
+      const slots = getAvailableSlots(courtId, date);
+      const slot = slots.find(s => s.startTime === startTime);
+      
+      if (!slot || !slot.isAvailable) {
+        results.push({ ...item, success: false, error: 'Horario no disponible' });
+        continue;
+      }
+
+      const newReservation = {
+        id: Date.now() + Math.random(),
+        code: `${bulkCode}-${results.length + 1}`,
+        bulkCode,
+        courtId,
+        date: new Date(date).toISOString().split('T')[0],
+        startTime,
+        endTime,
+        customer,
+        price: item.price || slot.price,
+        status: 'confirmed',
+        paymentStatus: 'pending',
+        isBulkReservation: true,
+        notes: notes || '',
+        createdAt: new Date().toISOString()
+      };
+
+      setReservations(prev => [...prev, newReservation]);
+      results.push({ ...item, success: true, reservation: newReservation });
+    }
+
+    return {
+      bulkCode,
+      total: items.length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      totalPrice: results.filter(r => r.success).reduce((sum, r) => sum + (r.reservation?.price || 0), 0),
+      results
+    };
+  }, [getAvailableSlots]);
+
   // Crear una nueva reserva
   const createReservation = useCallback((reservationData) => {
     const { courtId, date, startTime, endTime, customer } = reservationData;
@@ -333,6 +382,7 @@ export const ReservasProvider = ({ children }) => {
 
     // Acciones de reservas
     createReservation,
+    createBulkReservation,
     updateReservationStatus,
     cancelReservation,
 
